@@ -1,0 +1,23 @@
+{
+  "version": 0,
+  "use-external-names": false,
+  "case-sensitive": false,
+  "roots": [{
+    "type": "directory",
+    "name": "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Debug-iphonesimulator/google_mlkit_commons/google_mlkit_commons.framework/Modules",
+    "contents": [{
+      "type": "file",
+      "name": "module.modulemap",
+      "external-contents": "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/unextended-module.modulemap",
+    }]
+    },
+    {
+    "type": "directory",
+    "name": "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Debug-iphonesimulator/google_mlkit_commons/google_mlkit_commons.framework/Headers",
+    "contents": [{
+      "type": "file",
+      "name": "google_mlkit_commons-Swift.h",
+      "external-contents": "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/unextended-interface-header.h",
+    }]
+  }]
+}

@@ -1,17 +1,21 @@
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:flutter/services.dart';
 
-/// On-device text recognition (Latin bundle). One recognizer instance is
-/// reused; callers must [dispose] when the owning scope dies.
+/// On-device text recognition via Apple's Vision framework
+/// (VNRecognizeTextRequest) over a platform channel — no binary ML pods,
+/// identical behavior on simulator and device. Recognition never leaves
+/// the phone.
 class OcrService {
-  OcrService() : _recognizer = TextRecognizer(script: TextRecognitionScript.latin);
-
-  final TextRecognizer _recognizer;
+  static const MethodChannel _channel = MethodChannel('scanpdf/ocr');
 
   Future<String> recognizeFile(String imagePath) async {
-    final input = InputImage.fromFilePath(imagePath);
-    final result = await _recognizer.processImage(input);
-    return result.text;
+    final text = await _channel.invokeMethod<String>(
+      'recognizeText',
+      {'path': imagePath},
+    );
+    return text ?? '';
   }
 
-  Future<void> dispose() => _recognizer.close();
+  Future<void> dispose() async {
+    // Nothing to release — the channel is stateless.
+  }
 }

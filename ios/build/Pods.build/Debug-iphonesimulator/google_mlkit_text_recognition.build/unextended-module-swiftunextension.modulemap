@@ -1,0 +1,4 @@
+
+module google_mlkit_text_recognition.__Swift {
+  exclude header "google_mlkit_text_recognition-Swift.h"
+}

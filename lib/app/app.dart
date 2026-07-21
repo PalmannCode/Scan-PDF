@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -49,6 +50,9 @@ class _ScanPdfAppState extends ConsumerState<ScanPdfApp> {
 
   void _openLink(Uri uri) {
     final route = resolveDeepLink(uri);
+    if (kDebugMode) {
+      debugPrint('deep link received: $uri -> $route');
+    }
     // Post-frame so cold-start navigation lands after the first build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _router.go(route);

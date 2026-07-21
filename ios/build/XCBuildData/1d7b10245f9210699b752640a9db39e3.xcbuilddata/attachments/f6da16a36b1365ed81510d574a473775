@@ -1,0 +1,49 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/in_app_purchase_storekit-primary.dia",
+    "emit-module-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/in_app_purchase_storekit-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/in_app_purchase_storekit-primary-emit-module.dia",
+    "pch" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/in_app_purchase_storekit-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/in_app_purchase_storekit-primary.swiftdeps"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/in_app_purchase_storekit-0.4.10+1/darwin/in_app_purchase_storekit/Sources/in_app_purchase_storekit/InAppPurchasePlugin.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin~partial.swiftmodule"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/in_app_purchase_storekit-0.4.10+1/darwin/in_app_purchase_storekit/Sources/in_app_purchase_storekit/StoreKit2/InAppPurchasePlugin+StoreKit2.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin+StoreKit2.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin+StoreKit2.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin+StoreKit2.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin+StoreKit2.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin+StoreKit2.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin+StoreKit2.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin+StoreKit2.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/InAppPurchasePlugin+StoreKit2~partial.swiftmodule"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/in_app_purchase_storekit-0.4.10+1/darwin/in_app_purchase_storekit/Sources/in_app_purchase_storekit/StoreKit2/StoreKit2Messages.g.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Messages.g.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Messages.g.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Messages.g.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Messages.g.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Messages.g.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Messages.g.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Messages.g.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Messages.g~partial.swiftmodule"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/in_app_purchase_storekit-0.4.10+1/darwin/in_app_purchase_storekit/Sources/in_app_purchase_storekit/StoreKit2/StoreKit2Translators.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Translators.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Translators.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Translators.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Translators.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Translators.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Translators.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Translators.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/in_app_purchase_storekit.build/Objects-normal/arm64/StoreKit2Translators~partial.swiftmodule"
+  }
+}

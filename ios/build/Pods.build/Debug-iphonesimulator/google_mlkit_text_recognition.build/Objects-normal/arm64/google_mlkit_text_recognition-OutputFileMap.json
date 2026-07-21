@@ -1,0 +1,19 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/google_mlkit_text_recognition-primary.dia",
+    "emit-module-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/google_mlkit_text_recognition-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/google_mlkit_text_recognition-primary-emit-module.dia",
+    "pch" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/google_mlkit_text_recognition-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/google_mlkit_text_recognition-primary.swiftdeps"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/google_mlkit_text_recognition-0.16.0/ios/Classes/GoogleMlKitTextRecognitionPlugin.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/GoogleMlKitTextRecognitionPlugin.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/GoogleMlKitTextRecognitionPlugin.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/GoogleMlKitTextRecognitionPlugin.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/GoogleMlKitTextRecognitionPlugin.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/GoogleMlKitTextRecognitionPlugin.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/GoogleMlKitTextRecognitionPlugin.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/GoogleMlKitTextRecognitionPlugin.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_text_recognition.build/Objects-normal/arm64/GoogleMlKitTextRecognitionPlugin~partial.swiftmodule"
+  }
+}

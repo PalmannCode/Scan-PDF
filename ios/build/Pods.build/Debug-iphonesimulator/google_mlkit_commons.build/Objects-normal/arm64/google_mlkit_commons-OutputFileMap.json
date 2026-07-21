@@ -1,0 +1,39 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/google_mlkit_commons-primary.dia",
+    "emit-module-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/google_mlkit_commons-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/google_mlkit_commons-primary-emit-module.dia",
+    "pch" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/google_mlkit_commons-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/google_mlkit_commons-primary.swiftdeps"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/google_mlkit_commons-0.12.0/ios/Classes/GenericModelManager.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GenericModelManager.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GenericModelManager.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GenericModelManager.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GenericModelManager.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GenericModelManager.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GenericModelManager.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GenericModelManager.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GenericModelManager~partial.swiftmodule"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/google_mlkit_commons-0.12.0/ios/Classes/GoogleMlKitCommonsPlugin.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GoogleMlKitCommonsPlugin.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GoogleMlKitCommonsPlugin.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GoogleMlKitCommonsPlugin.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GoogleMlKitCommonsPlugin.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GoogleMlKitCommonsPlugin.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GoogleMlKitCommonsPlugin.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GoogleMlKitCommonsPlugin.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/GoogleMlKitCommonsPlugin~partial.swiftmodule"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/google_mlkit_commons-0.12.0/ios/Classes/MLKVisionImage+FlutterPlugin.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/MLKVisionImage+FlutterPlugin.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/MLKVisionImage+FlutterPlugin.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/MLKVisionImage+FlutterPlugin.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/MLKVisionImage+FlutterPlugin.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/MLKVisionImage+FlutterPlugin.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/MLKVisionImage+FlutterPlugin.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/MLKVisionImage+FlutterPlugin.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/google_mlkit_commons.build/Objects-normal/arm64/MLKVisionImage+FlutterPlugin~partial.swiftmodule"
+  }
+}

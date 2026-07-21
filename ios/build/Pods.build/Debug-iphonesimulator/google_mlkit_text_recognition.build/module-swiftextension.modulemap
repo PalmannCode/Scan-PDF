@@ -1,0 +1,4 @@
+
+module google_mlkit_text_recognition.Swift {
+  header "google_mlkit_text_recognition-Swift.h"
+}

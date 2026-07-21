@@ -1,0 +1,23 @@
+{
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/camera_avfoundation-0.10.2/ios/camera_avfoundation/Sources/camera_avfoundation/ImageStreamHandler.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/ImageStreamHandler.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/ImageStreamHandler.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/ImageStreamHandler.dia",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/ImageStreamHandler.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/ImageStreamHandler.swiftdeps"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/camera_avfoundation-0.10.2/ios/camera_avfoundation/Sources/camera_avfoundation/MediaSettingsAVWrapper.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/MediaSettingsAVWrapper.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/MediaSettingsAVWrapper.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/MediaSettingsAVWrapper.dia",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/MediaSettingsAVWrapper.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/MediaSettingsAVWrapper.swiftdeps"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/camera_avfoundation-0.10.2/ios/camera_avfoundation/Sources/camera_avfoundation/Messages.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/Messages.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/Messages.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/Messages.dia",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/Messages.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/Messages.swiftdeps"
+  }
+}

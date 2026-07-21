@@ -1,0 +1,23 @@
+{
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/camera_avfoundation-0.10.2/ios/camera_avfoundation/Sources/camera_avfoundation/CaptureDeviceFormat.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureDeviceFormat.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureDeviceFormat.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureDeviceFormat.dia",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureDeviceFormat.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureDeviceFormat.swiftdeps"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/camera_avfoundation-0.10.2/ios/camera_avfoundation/Sources/camera_avfoundation/CaptureOutput.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureOutput.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureOutput.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureOutput.dia",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureOutput.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureOutput.swiftdeps"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/camera_avfoundation-0.10.2/ios/camera_avfoundation/Sources/camera_avfoundation/CaptureSession.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureSession.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureSession.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureSession.dia",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureSession.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/camera_avfoundation.build/Objects-normal/arm64/CaptureSession.swiftdeps"
+  }
+}

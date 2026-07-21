@@ -1,0 +1,4 @@
+
+module google_mlkit_commons.Swift {
+  header "google_mlkit_commons-Swift.h"
+}

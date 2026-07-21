@@ -1,0 +1,19 @@
+{
+  "" : {
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary.dia",
+    "emit-module-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary-emit-module.dia",
+    "pch" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary.swiftdeps"
+  },
+  "/Users/nobrainer/.pub-cache/hosted/pub.dev/app_links-7.0.0/ios/app_links/Sources/app_links/AppLinksIosPlugin.swift" : {
+    "const-values" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.swiftconstvalues",
+    "dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.d",
+    "diagnostics" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.o",
+    "llvm-bc" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.bc",
+    "object" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.o",
+    "swift-dependencies" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.swiftdeps",
+    "swiftmodule" : "/Users/nobrainer/A1 Global/Flutter/scanpdf/ios/build/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin~partial.swiftmodule"
+  }
+}

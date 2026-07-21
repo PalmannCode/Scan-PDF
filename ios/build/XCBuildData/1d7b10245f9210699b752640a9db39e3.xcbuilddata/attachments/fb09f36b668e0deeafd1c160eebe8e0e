@@ -1,0 +1,4 @@
+
+module camera_avfoundation.Swift {
+  header "camera_avfoundation-Swift.h"
+}
