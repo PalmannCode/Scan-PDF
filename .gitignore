@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ASC screenshot assets (uploaded via tooling, not tracked in source)
+/localized-screenshots/

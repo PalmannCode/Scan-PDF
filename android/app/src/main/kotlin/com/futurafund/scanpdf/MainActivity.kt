@@ -1,4 +1,4 @@
-package com.example.scanpdf
+package com.futurafund.scanpdf
 
 import io.flutter.embedding.android.FlutterActivity
 
