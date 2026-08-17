@@ -21,8 +21,7 @@ class OcrResultScreen extends ConsumerStatefulWidget {
   final String documentId;
 
   @override
-  ConsumerState<OcrResultScreen> createState() =>
-      _OcrResultScreenState();
+  ConsumerState<OcrResultScreen> createState() => _OcrResultScreenState();
 }
 
 class _OcrResultScreenState extends ConsumerState<OcrResultScreen> {
@@ -58,36 +57,42 @@ class _OcrResultScreenState extends ConsumerState<OcrResultScreen> {
         leading: PressableTap(
           style: PressStyle.dim,
           onTap: () => context.pop(),
-          child: Icon(Icons.arrow_back_ios_new_rounded,
-              color: colors.textPrimary,
-              size: 20,
-              semanticLabel: 'Back'),
+          child: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: colors.textPrimary,
+            size: 20,
+            semanticLabel: 'Back',
+          ),
         ),
-        title: Text('Recognized text',
-            style: AppTypography.title(colors.textPrimary)),
+        title: Text(
+          'Recognized text',
+          style: AppTypography.title(colors.textPrimary),
+        ),
         actions: [
           if (doc.hasOcr) ...[
             PressableTap(
               style: PressStyle.dim,
               onTap: () async {
-                await Clipboard.setData(
-                    ClipboardData(text: doc.ocrText));
+                await Clipboard.setData(ClipboardData(text: doc.ocrText));
                 Haptics.success();
               },
-              child: Icon(Icons.copy_rounded,
-                  color: colors.textPrimary,
-                  size: 20,
-                  semanticLabel: 'Copy all'),
+              child: Icon(
+                Icons.copy_rounded,
+                color: colors.textPrimary,
+                size: 20,
+                semanticLabel: 'Copy all',
+              ),
             ),
             const SizedBox(width: AppSpacing.lg),
             PressableTap(
               style: PressStyle.dim,
-              onTap: () =>
-                  ref.read(exportServiceProvider).shareTxt(doc),
-              child: Icon(Icons.ios_share_rounded,
-                  color: colors.textPrimary,
-                  size: 20,
-                  semanticLabel: 'Share text'),
+              onTap: () => ref.read(exportServiceProvider).shareTxt(doc),
+              child: Icon(
+                Icons.ios_share_rounded,
+                color: colors.textPrimary,
+                size: 20,
+                semanticLabel: 'Share text',
+              ),
             ),
             const SizedBox(width: AppSpacing.lg),
           ],
@@ -97,43 +102,42 @@ class _OcrResultScreenState extends ConsumerState<OcrResultScreen> {
         child: _running
             ? const _OcrSkeleton()
             : !doc.hasOcr
-                ? _NoTextView(onRun: _runOcr)
-                : ListView.builder(
-                    physics: const BouncingScrollPhysics(),
+            ? _NoTextView(onRun: _runOcr)
+            : ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                itemCount: doc.pages.length,
+                itemBuilder: (context, index) {
+                  final page = doc.pages[index];
+                  if (!page.hasOcr) return const SizedBox.shrink();
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.lg),
                     padding: const EdgeInsets.all(AppSpacing.lg),
-                    itemCount: doc.pages.length,
-                    itemBuilder: (context, index) {
-                      final page = doc.pages[index];
-                      if (!page.hasOcr) return const SizedBox.shrink();
-                      return Container(
-                        margin: const EdgeInsets.only(
-                            bottom: AppSpacing.lg),
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        decoration: BoxDecoration(
-                          color: colors.paperCard,
-                          borderRadius: AppShapes.cardRadius,
-                          border: Border.all(color: colors.hairline),
+                    decoration: BoxDecoration(
+                      color: colors.paperCard,
+                      borderRadius: AppShapes.cardRadius,
+                      border: Border.all(color: colors.hairline),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'PAGE ${index + 1}',
+                          style: AppTypography.mono(
+                            colors.textSecondary,
+                            size: 11,
+                          ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'PAGE ${index + 1}',
-                              style: AppTypography.mono(
-                                  colors.textSecondary,
-                                  size: 11),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            SelectableText(
-                              page.ocrText,
-                              style: AppTypography.body(
-                                  colors.textPrimary),
-                            ),
-                          ],
+                        const SizedBox(height: AppSpacing.sm),
+                        SelectableText(
+                          page.ocrText,
+                          style: AppTypography.body(colors.textPrimary),
                         ),
-                      );
-                    },
-                  ),
+                      ],
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -181,8 +185,10 @@ class _NoTextView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('No text recognized yet',
-              style: AppTypography.title(colors.textPrimary)),
+          Text(
+            'No text recognized yet',
+            style: AppTypography.title(colors.textPrimary),
+          ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Run text recognition on this document\'s pages.',
@@ -200,8 +206,10 @@ class _NoTextView extends StatelessWidget {
                 color: colors.accent,
                 borderRadius: AppShapes.buttonRadius,
               ),
-              child: Text('Recognize text',
-                  style: AppTypography.bodyMedium(Colors.white)),
+              child: Text(
+                'Recognize text',
+                style: AppTypography.bodyMedium(Colors.white),
+              ),
             ),
           ),
         ],

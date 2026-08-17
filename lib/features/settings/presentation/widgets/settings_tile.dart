@@ -34,8 +34,10 @@ class SettingsSection extends StatelessWidget {
               left: AppSpacing.md,
               bottom: AppSpacing.sm,
             ),
-            child: Text(title,
-                style: AppTypography.label(colors.textSecondary)),
+            child: Text(
+              title,
+              style: AppTypography.label(colors.textSecondary),
+            ),
           ),
           Container(
             decoration: BoxDecoration(
@@ -48,8 +50,7 @@ class SettingsSection extends StatelessWidget {
               children: [
                 for (var i = 0; i < children.length; i++) ...[
                   if (i > 0)
-                    Divider(
-                        height: 1, indent: 52, color: colors.hairline),
+                    Divider(height: 1, indent: 52, color: colors.hairline),
                   children[i],
                 ],
               ],
@@ -87,21 +88,25 @@ class SettingsTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon,
-                color: colors.textSecondary,
-                size: 22,
-                semanticLabel: label),
+            Icon(
+              icon,
+              color: colors.textSecondary,
+              size: 22,
+              semanticLabel: label,
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
-              child: Text(label,
-                  style: AppTypography.body(colors.textPrimary)),
+              child: Text(label, style: AppTypography.body(colors.textPrimary)),
             ),
             if (value != null)
-              Text(value!,
-                  style: AppTypography.caption(colors.textSecondary)),
+              Text(value!, style: AppTypography.caption(colors.textSecondary)),
             const SizedBox(width: AppSpacing.xs),
-            Icon(Icons.chevron_right_rounded,
-                color: colors.hairline, size: 20, semanticLabel: 'Open'),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: colors.hairline,
+              size: 20,
+              semanticLabel: 'Open',
+            ),
           ],
         ),
       ),
@@ -133,14 +138,15 @@ class SettingsToggleTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon,
-              color: colors.textSecondary,
-              size: 22,
-              semanticLabel: label),
+          Icon(
+            icon,
+            color: colors.textSecondary,
+            size: 22,
+            semanticLabel: label,
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Text(label,
-                style: AppTypography.body(colors.textPrimary)),
+            child: Text(label, style: AppTypography.body(colors.textPrimary)),
           ),
           if (Platform.isIOS)
             CupertinoSwitch(

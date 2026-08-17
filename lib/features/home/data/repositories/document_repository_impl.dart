@@ -14,16 +14,29 @@ class DocumentRepositoryImpl implements DocumentRepository {
   final String Function(String relative) resolvePath;
 
   @override
-  List<ScanDocument> getAll() => box.values
-      .map((raw) => ScanDocument.fromJson(
-          jsonDecode(raw) as Map<String, dynamic>))
-      .toList();
+  List<ScanDocument> getAll() {
+    final documents = <ScanDocument>[];
+    for (final raw in box.values) {
+      try {
+        documents.add(
+          ScanDocument.fromJson(jsonDecode(raw) as Map<String, dynamic>),
+        );
+      } catch (_) {
+        // One damaged index entry must not make the whole library unusable.
+      }
+    }
+    return documents;
+  }
 
   @override
   ScanDocument? getById(String id) {
     final raw = box.get(id);
     if (raw == null) return null;
-    return ScanDocument.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    try {
+      return ScanDocument.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -43,16 +56,24 @@ class DocumentRepositoryImpl implements DocumentRepository {
     required Uint8List original,
   }) async {
     await _pageFile('pages/$pageId.jpg').writeAsBytes(processed, flush: true);
-    await _pageFile('pages/${pageId}_orig.jpg')
-        .writeAsBytes(original, flush: true);
+    await _pageFile(
+      'pages/${pageId}_orig.jpg',
+    ).writeAsBytes(original, flush: true);
   }
 
   @override
   Future<void> rewriteProcessed({
     required String pageId,
     required Uint8List processed,
-  }) =>
-      _pageFile('pages/$pageId.jpg').writeAsBytes(processed, flush: true);
+  }) => _pageFile('pages/$pageId.jpg').writeAsBytes(processed, flush: true);
+
+  @override
+  Future<void> deletePageFiles(String pageId) async {
+    for (final name in ['pages/$pageId.jpg', 'pages/${pageId}_orig.jpg']) {
+      final file = File(resolvePath(name));
+      if (await file.exists()) await file.delete();
+    }
+  }
 
   @override
   Future<Uint8List> readOriginal(String pageId) =>
@@ -62,9 +83,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
   Future<void> moveToTrash(String id) async {
     final doc = getById(id);
     if (doc == null) return;
-    await upsert(
-      doc.copyWith(isDeleted: true, deletedAt: DateTime.now()),
-    );
+    await upsert(doc.copyWith(isDeleted: true, deletedAt: DateTime.now()));
   }
 
   @override
@@ -79,18 +98,17 @@ class DocumentRepositoryImpl implements DocumentRepository {
     final doc = getById(id);
     if (doc == null) return;
     for (final page in doc.pages) {
-      for (final name in [page.processedFileName, page.originalFileName]) {
-        final file = File(resolvePath(name));
-        if (file.existsSync()) file.deleteSync();
-      }
+      await deletePageFiles(page.id);
     }
     await box.delete(id);
   }
 
   @override
   Future<void> emptyTrash() async {
-    final trashed =
-        getAll().where((d) => d.isDeleted).map((d) => d.id).toList();
+    final trashed = getAll()
+        .where((d) => d.isDeleted)
+        .map((d) => d.id)
+        .toList();
     for (final id in trashed) {
       await deletePermanent(id);
     }

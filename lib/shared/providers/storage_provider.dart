@@ -18,8 +18,7 @@ abstract class HiveBoxes {
 /// Absolute app-documents directory — overridden in main() after
 /// path_provider resolves it, so path lookup is synchronous app-wide.
 @Riverpod(keepAlive: true)
-String storageDir(Ref ref) =>
-    throw UnimplementedError('Overridden in main()');
+String storageDir(Ref ref) => throw UnimplementedError('Overridden in main()');
 
 /// Maps stored relative file names (`pages/<id>.jpg`) to absolute paths.
 @Riverpod(keepAlive: true)
@@ -45,9 +44,9 @@ PdfService pdfService(Ref ref) => const PdfService();
 
 @Riverpod(keepAlive: true)
 ExportService exportService(Ref ref) => ExportService(
-      pdfService: ref.watch(pdfServiceProvider),
-      resolvePath: ref.watch(resolvePathProvider),
-    );
+  pdfService: ref.watch(pdfServiceProvider),
+  resolvePath: ref.watch(resolvePathProvider),
+);
 
 @Riverpod(keepAlive: true)
 OcrService ocrService(Ref ref) {

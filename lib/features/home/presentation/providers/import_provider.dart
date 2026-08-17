@@ -68,8 +68,7 @@ class ImportController {
     for (final path in paths) {
       if (path.toLowerCase().endsWith('.pdf')) {
         final bytes = await File(path).readAsBytes();
-        final pages =
-            await _ref.read(pdfServiceProvider).rasterizePdf(bytes);
+        final pages = await _ref.read(pdfServiceProvider).rasterizePdf(bytes);
         for (final pageBytes in pages) {
           final tempPath = '${tmp.path}/import_${const Uuid().v4()}.png';
           await File(tempPath).writeAsBytes(pageBytes, flush: true);

@@ -131,7 +131,7 @@ Honored — but NOT the generic centered-icon template: each screen is a full-bl
 
 1. "Scan documents in seconds" — ScanPulseFrame over a paper sheet, beam mid-sweep.
 2. "Edit like an expert" — painted page with crop handles + signature stroke drawing in.
-3. "Export anywhere" — painted sheet fanning into PDF/JPG/TXT/DOCX file chips.
+3. "Export anywhere" — painted sheet fanning into PDF/JPG/PNG/TXT file chips.
 
 Progress: 3 Swiss tick-dashes (not dots) + Skip top-right; CTA pill in scanOrange.
 Footer: implicit consent line with Privacy/Terms links.

@@ -32,59 +32,78 @@ class ScanSaver {
     void Function(int done, int total)? onProgress,
   }) async {
     final session = _ref.read(scanSessionProvider);
-    assert(session.pages.isNotEmpty, 'Nothing captured');
+    if (session.pages.isEmpty) {
+      throw StateError('Nothing captured');
+    }
     final settings = _ref.read(settingsProvider);
     final scanner = _ref.read(scannerServiceProvider);
     final repo = _ref.read(documentRepositoryProvider);
 
     final pages = <ScanPage>[];
-    for (final captured in session.pages) {
-      onProgress?.call(pages.length, session.pages.length);
-      final original =
-          await File(captured.tempPath).readAsBytes();
-      final processed = await scanner.process(
-        ScanProcessRequest(
-          bytes: original,
-          corners: captured.corners,
-          filter: captured.filter,
-          rotationQuarters: captured.rotationQuarters,
-          quality: settings.imageQuality,
-        ),
-      );
-      final pageId = const Uuid().v4();
-      await repo.writePageFiles(
-        pageId: pageId,
-        processed: processed,
-        original: original,
-      );
-      pages.add(ScanPage(id: pageId, filter: captured.filter));
-    }
+    final storedPageIds = <String>[];
+    late final ScanDocument document;
+    try {
+      for (final captured in session.pages) {
+        onProgress?.call(pages.length, session.pages.length);
+        final original = await File(captured.tempPath).readAsBytes();
+        final processed = await scanner.process(
+          ScanProcessRequest(
+            bytes: original,
+            corners: captured.corners,
+            filter: captured.filter,
+            rotationQuarters: captured.rotationQuarters,
+            quality: settings.imageQuality,
+          ),
+        );
+        final pageId = const Uuid().v4();
+        storedPageIds.add(pageId);
+        await repo.writePageFiles(
+          pageId: pageId,
+          processed: processed,
+          original: original,
+        );
+        pages.add(ScanPage(id: pageId, filter: captured.filter));
+      }
 
-    final now = DateTime.now();
-    final document = ScanDocument(
-      id: const Uuid().v4(),
-      title: title,
-      folderId: folderId,
-      createdAt: now,
-      modifiedAt: now,
-      pages: pages,
-    );
-    await repo.upsert(document);
+      final now = DateTime.now();
+      document = ScanDocument(
+        id: const Uuid().v4(),
+        title: title,
+        folderId: folderId,
+        createdAt: now,
+        modifiedAt: now,
+        pages: pages,
+      );
+      await repo.upsert(document);
+    } catch (_) {
+      for (final pageId in storedPageIds) {
+        await repo.deletePageFiles(pageId);
+      }
+      rethrow;
+    }
     _ref.read(documentsProvider.notifier).refresh();
+    _ref.read(scanSessionProvider.notifier).clear();
 
     // Engagement counting — the review prompt fires only from here, after
     // a completed core action, never at launch (Guideline 5.6.3).
-    final appState = _ref.read(appStateRepositoryProvider);
-    final count = await appState.incrementSavedDocuments();
-    await _ref.read(appReviewServiceProvider).maybeRequestReview(count);
-
-    if (session.fromEvent) {
-      await _ref
-          .read(receiptRescueProvider.notifier)
-          .recordRescue(document.id);
+    try {
+      final appState = _ref.read(appStateRepositoryProvider);
+      final count = await appState.incrementSavedDocuments();
+      await _ref.read(appReviewServiceProvider).maybeRequestReview(count);
+    } catch (_) {
+      // Ancillary review bookkeeping must not turn a completed save into an
+      // error that encourages the user to create a duplicate document.
     }
 
-    _ref.read(scanSessionProvider.notifier).clear();
+    if (session.fromEvent) {
+      try {
+        await _ref
+            .read(receiptRescueProvider.notifier)
+            .recordRescue(document.id);
+      } catch (_) {
+        // Event progress is secondary to preserving the document itself.
+      }
+    }
 
     if (settings.autoOcrAfterScan) {
       // Fire-and-forget; search picks the text up when it lands.
@@ -109,8 +128,7 @@ class ScanSaver {
         continue;
       }
       try {
-        final text =
-            await ocr.recognizeFile(resolve(page.processedFileName));
+        final text = await ocr.recognizeFile(resolve(page.processedFileName));
         updated.add(page.copyWith(ocrText: text));
         changed = true;
       } catch (_) {

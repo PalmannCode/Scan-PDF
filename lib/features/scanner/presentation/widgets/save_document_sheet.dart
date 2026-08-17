@@ -57,7 +57,9 @@ class _SaveSheetBodyState extends ConsumerState<_SaveSheetBody> {
       _total = ref.read(scanSessionProvider).pages.length;
     });
     try {
-      await ref.read(scanSaverProvider).saveSession(
+      await ref
+          .read(scanSaverProvider)
+          .saveSession(
             title: title,
             folderId: _folderId,
             onProgress: (done, total) {
@@ -107,8 +109,7 @@ class _SaveSheetBodyState extends ConsumerState<_SaveSheetBody> {
           Text('Name', style: AppTypography.label(colors.textSecondary)),
           const SizedBox(height: AppSpacing.sm),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             decoration: BoxDecoration(
               color: colors.toolCard,
               borderRadius: AppShapes.buttonRadius,
@@ -117,9 +118,7 @@ class _SaveSheetBodyState extends ConsumerState<_SaveSheetBody> {
               controller: _nameController,
               style: AppTypography.body(colors.textPrimary),
               cursorColor: colors.accent,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-              ),
+              decoration: const InputDecoration(border: InputBorder.none),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -147,8 +146,7 @@ class _SaveSheetBodyState extends ConsumerState<_SaveSheetBody> {
             onTap: _saving ? null : _save,
             enabled: !_saving,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               decoration: BoxDecoration(
                 color: _saving
                     ? colors.accent.withValues(alpha: 0.55)
@@ -156,9 +154,7 @@ class _SaveSheetBodyState extends ConsumerState<_SaveSheetBody> {
                 borderRadius: AppShapes.buttonRadius,
               ),
               child: Text(
-                _saving
-                    ? 'Processing $_done / $_total…'
-                    : 'Save to library',
+                _saving ? 'Processing $_done / $_total…' : 'Save to library',
                 textAlign: TextAlign.center,
                 style: AppTypography.title(Colors.white),
               ),

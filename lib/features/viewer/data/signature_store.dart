@@ -64,7 +64,6 @@ class SignatureStore {
       final file = File(resolvePath(signature.fileName));
       if (file.existsSync()) file.deleteSync();
     }
-    await prefs
-        .put(_key, jsonEncode([for (final s in remaining) s.toJson()]));
+    await prefs.put(_key, jsonEncode([for (final s in remaining) s.toJson()]));
   }
 }

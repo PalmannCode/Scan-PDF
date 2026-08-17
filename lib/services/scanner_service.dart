@@ -41,13 +41,16 @@ class ScannerService {
     }
     image = img.bakeOrientation(image);
 
-    final corners = request.corners;
-    if (corners != null && corners.length == 8) {
+    final corners = normalizedCorners(request.corners);
+    if (corners != null) {
       image = _rectify(image, corners);
     }
 
     if (request.rotationQuarters % 4 != 0) {
-      image = img.copyRotate(image, angle: 90.0 * (request.rotationQuarters % 4));
+      image = img.copyRotate(
+        image,
+        angle: 90.0 * (request.rotationQuarters % 4),
+      );
     }
 
     image = _applyFilter(image, request.filter);
@@ -64,6 +67,31 @@ class ScannerService {
     }
 
     return img.encodeJpg(image, quality: request.quality);
+  }
+
+  /// Returns a safe normalized TL/TR/BR/BL quadrilateral, or null when
+  /// a malformed/self-crossing crop should fall back to the full image.
+  @visibleForTesting
+  static List<double>? normalizedCorners(List<double>? input) {
+    if (input == null || input.length != 8 || input.any((v) => !v.isFinite)) {
+      return null;
+    }
+    final c = [for (final value in input) value.clamp(0.0, 1.0).toDouble()];
+    final tl = math.Point<double>(c[0], c[1]);
+    final tr = math.Point<double>(c[2], c[3]);
+    final br = math.Point<double>(c[4], c[5]);
+    final bl = math.Point<double>(c[6], c[7]);
+
+    if (tl.x >= tr.x || bl.x >= br.x || tl.y >= bl.y || tr.y >= br.y) {
+      return null;
+    }
+    final twiceArea =
+        (tl.x * tr.y - tr.x * tl.y) +
+        (tr.x * br.y - br.x * tr.y) +
+        (br.x * bl.y - bl.x * br.y) +
+        (bl.x * tl.y - tl.x * bl.y);
+    if (twiceArea.abs() < 0.04) return null;
+    return c;
   }
 
   static img.Image _rectify(img.Image src, List<double> c) {

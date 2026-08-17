@@ -45,25 +45,25 @@ class AppSurface extends StatelessWidget {
 
     final decoration = switch (variant) {
       SurfaceVariant.primary => BoxDecoration(
-          color: colors.paperCard,
-          borderRadius: radius,
-          border: Border.all(color: colors.hairline),
-          boxShadow: AppShapes.softShadow(colors.textPrimary),
-        ),
+        color: colors.paperCard,
+        borderRadius: radius,
+        border: Border.all(color: colors.hairline),
+        boxShadow: AppShapes.softShadow(colors.textPrimary),
+      ),
       SurfaceVariant.secondary => BoxDecoration(
-          color: colors.toolCard,
-          borderRadius: radius,
-        ),
+        color: colors.toolCard,
+        borderRadius: radius,
+      ),
       SurfaceVariant.emphasis => BoxDecoration(
-          color: colors.paperCard,
-          borderRadius: radius,
-          border: Border.all(color: colors.accent, width: 1.5),
-          boxShadow: AppShapes.softShadow(colors.accentDeep),
-        ),
+        color: colors.paperCard,
+        borderRadius: radius,
+        border: Border.all(color: colors.accent, width: 1.5),
+        boxShadow: AppShapes.softShadow(colors.accentDeep),
+      ),
       SurfaceVariant.shell => BoxDecoration(
-          color: colors.shellElevated,
-          borderRadius: radius,
-        ),
+        color: colors.shellElevated,
+        borderRadius: radius,
+      ),
     };
 
     final surface = DecoratedBox(

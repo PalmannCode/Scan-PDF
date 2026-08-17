@@ -70,10 +70,8 @@ class _TickingCount extends StatelessWidget {
       tween: IntTween(begin: 0, end: value),
       duration: AppMotion.sheet * 2,
       curve: AppMotion.enter,
-      builder: (context, count, _) => Text(
-        '$count',
-        style: AppTypography.mono(colors.onShell, size: 12),
-      ),
+      builder: (context, count, _) =>
+          Text('$count', style: AppTypography.mono(colors.onShell, size: 12)),
     );
   }
 }

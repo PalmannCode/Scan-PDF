@@ -3,18 +3,15 @@ abstract class AppConstants {
   static const String appNameShort = 'Scan PDF';
   static const String bundleId = 'com.futurafund.scanpdf';
   static const String appStoreId = '6792221523';
-  static const String appStoreUrl =
-      'https://apps.apple.com/app/id$appStoreId';
+  static const String appStoreUrl = 'https://apps.apple.com/app/id$appStoreId';
 
-  /// EXACT auto-renewable subscription product ID from App Store Connect
-  /// (Monetization > Subscriptions). Intentionally EMPTY until created in
-  /// ASC — never guess this value: a mismatch makes queryProductDetails
-  /// return nothing and the paywall shows its store-unavailable state.
-  static const String plusProductId = '';
+  /// Exact auto-renewable subscription product ID confirmed for v1.
+  static const String plusProductId = 'plus_pdf_monthly';
 
   /// Fallback offer copy from Jira SUBAPPS-129 §7, shown when the live
   /// store price has not loaded.
-  static const String plusFallbackPrice = r'$3.99/week';
+  static const String plusFallbackPrice = r'$3.99';
+  static const String plusBillingPeriod = 'month';
   static const String plusTrialText = '3 days free';
 
   /// Completed core actions (saved documents) before the in-app review

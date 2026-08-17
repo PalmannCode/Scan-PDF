@@ -124,8 +124,7 @@ class _ScanPulsePainter extends CustomPainter {
     Path corner(Offset origin, double dx, double dy) => Path()
       ..moveTo(origin.dx + dx * arm, origin.dy)
       ..lineTo(origin.dx + dx * r, origin.dy)
-      ..quadraticBezierTo(
-          origin.dx, origin.dy, origin.dx, origin.dy + dy * r)
+      ..quadraticBezierTo(origin.dx, origin.dy, origin.dx, origin.dy + dy * r)
       ..lineTo(origin.dx, origin.dy + dy * arm);
 
     canvas.drawPath(corner(Offset.zero, 1, 1), bracket);

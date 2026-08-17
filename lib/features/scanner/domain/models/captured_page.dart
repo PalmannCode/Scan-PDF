@@ -23,13 +23,12 @@ class CapturedPage {
     bool clearCorners = false,
     ScanFilter? filter,
     int? rotationQuarters,
-  }) =>
-      CapturedPage(
-        tempPath: tempPath,
-        corners: clearCorners ? null : (corners ?? this.corners),
-        filter: filter ?? this.filter,
-        rotationQuarters: rotationQuarters ?? this.rotationQuarters,
-      );
+  }) => CapturedPage(
+    tempPath: tempPath,
+    corners: clearCorners ? null : (corners ?? this.corners),
+    filter: filter ?? this.filter,
+    rotationQuarters: rotationQuarters ?? this.rotationQuarters,
+  );
 }
 
 /// The active scan/import batch (Jira §14 batch scan).
@@ -53,10 +52,9 @@ class ScanSession {
     List<CapturedPage>? pages,
     CameraMode? mode,
     bool? fromEvent,
-  }) =>
-      ScanSession(
-        pages: pages ?? this.pages,
-        mode: mode ?? this.mode,
-        fromEvent: fromEvent ?? this.fromEvent,
-      );
+  }) => ScanSession(
+    pages: pages ?? this.pages,
+    mode: mode ?? this.mode,
+    fromEvent: fromEvent ?? this.fromEvent,
+  );
 }

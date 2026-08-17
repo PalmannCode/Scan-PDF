@@ -1,4 +1,0 @@
-
-module in_app_purchase_storekit.Swift {
-  header "in_app_purchase_storekit-Swift.h"
-}

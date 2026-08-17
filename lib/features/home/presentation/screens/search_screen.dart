@@ -46,8 +46,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         .toSet();
     return docs.where((doc) {
       if (doc.title.toLowerCase().contains(query)) return true;
-      if (doc.folderId != null &&
-          matchingFolderIds.contains(doc.folderId)) {
+      if (doc.folderId != null && matchingFolderIds.contains(doc.folderId)) {
         return true;
       }
       return doc.ocrText.toLowerCase().contains(query);
@@ -75,30 +74,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       child: Container(
                         height: 48,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg),
+                          horizontal: AppSpacing.lg,
+                        ),
                         decoration: BoxDecoration(
                           color: colors.shellElevated,
                           borderRadius: AppShapes.pillRadius,
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.search_rounded,
-                                color: colors.onShellMuted,
-                                semanticLabel: 'Search'),
+                            Icon(
+                              Icons.search_rounded,
+                              color: colors.onShellMuted,
+                              semanticLabel: 'Search',
+                            ),
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: TextField(
                                 controller: _controller,
                                 autofocus: true,
-                                style:
-                                    AppTypography.body(colors.onShell),
+                                style: AppTypography.body(colors.onShell),
                                 cursorColor: colors.accent,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   isCollapsed: true,
                                   hintText: 'Search by title or text',
                                   hintStyle: AppTypography.body(
-                                      colors.onShellMuted),
+                                    colors.onShellMuted,
+                                  ),
                                 ),
                                 onChanged: (value) =>
                                     setState(() => _query = value),
@@ -112,9 +114,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     PressableTap(
                       style: PressStyle.dim,
                       onTap: () => context.pop(),
-                      child: Text('Done',
-                          style:
-                              AppTypography.bodyMedium(colors.onShell)),
+                      child: Text(
+                        'Done',
+                        style: AppTypography.bodyMedium(colors.onShell),
+                      ),
                     ),
                   ],
                 ),
@@ -150,8 +153,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       itemCount: results.length,
       itemBuilder: (context, index) {
         final doc = results[index];

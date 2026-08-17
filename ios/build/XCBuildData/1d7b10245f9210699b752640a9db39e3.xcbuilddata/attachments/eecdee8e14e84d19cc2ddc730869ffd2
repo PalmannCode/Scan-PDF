@@ -1,4 +1,0 @@
-
-module google_mlkit_commons.__Swift {
-  exclude header "google_mlkit_commons-Swift.h"
-}

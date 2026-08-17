@@ -27,8 +27,13 @@ class ExportService {
     return dir;
   }
 
-  String _safeName(String title) =>
-      title.replaceAll(RegExp(r'[^\w\s\-]'), '').trim().replaceAll(' ', '_');
+  String _safeName(String title) {
+    final cleaned = title
+        .replaceAll(RegExp(r'[^\w\s\-]'), '')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_');
+    return cleaned.isEmpty ? 'Scan_PDF' : cleaned;
+  }
 
   Future<File> buildPdfFile(ScanDocument document) async {
     final images = <Uint8List>[

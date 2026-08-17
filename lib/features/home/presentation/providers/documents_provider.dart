@@ -10,9 +10,9 @@ part 'documents_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 DocumentRepository documentRepository(Ref ref) => DocumentRepositoryImpl(
-      box: ref.watch(documentsBoxProvider),
-      resolvePath: ref.watch(resolvePathProvider),
-    );
+  box: ref.watch(documentsBoxProvider),
+  resolvePath: ref.watch(resolvePathProvider),
+);
 
 /// Whole library (including trash); screens slice it via the computed
 /// providers below.
@@ -33,9 +33,7 @@ class Documents extends _$Documents {
   Future<void> rename(String id, String title) async {
     final doc = _repo.getById(id);
     if (doc == null) return;
-    await _repo.upsert(
-      doc.copyWith(title: title, modifiedAt: DateTime.now()),
-    );
+    await _repo.upsert(doc.copyWith(title: title, modifiedAt: DateTime.now()));
     refresh();
   }
 
@@ -86,9 +84,10 @@ List<ScanDocument> activeDocuments(Ref ref) {
 @riverpod
 List<ScanDocument> trashedDocuments(Ref ref) {
   final all = ref.watch(documentsProvider);
-  return all.where((d) => d.isDeleted).toList()
-    ..sort((a, b) => (b.deletedAt ?? b.modifiedAt)
-        .compareTo(a.deletedAt ?? a.modifiedAt));
+  return all.where((d) => d.isDeleted).toList()..sort(
+    (a, b) =>
+        (b.deletedAt ?? b.modifiedAt).compareTo(a.deletedAt ?? a.modifiedAt),
+  );
 }
 
 @riverpod
@@ -114,7 +113,8 @@ List<ScanDocument> sortDocuments(
       sorted.sort((a, b) => b.modifiedAt.compareTo(a.modifiedAt));
     case LibrarySortMode.name:
       sorted.sort(
-          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+      );
   }
   return sorted;
 }

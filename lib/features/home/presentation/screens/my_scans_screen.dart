@@ -58,8 +58,7 @@ class MyScansScreen extends ConsumerWidget {
               if (documents.isNotEmpty)
                 LibraryStatsStrip(
                   documentCount: documents.length,
-                  pageCount: documents.fold(
-                      0, (sum, d) => sum + d.pageCount),
+                  pageCount: documents.fold(0, (sum, d) => sum + d.pageCount),
                 ),
               Expanded(
                 child: isEmpty
@@ -147,15 +146,13 @@ class _MoreMenu extends ConsumerWidget {
       String label, {
       VoidCallback? onPressed,
       bool checked = false,
-    }) =>
-        MenuItemButton(
-          onPressed: onPressed,
-          trailingIcon: checked
-              ? Icon(Icons.check_rounded, size: 18, color: colors.accent)
-              : null,
-          child: Text(label,
-              style: AppTypography.bodyMedium(colors.textPrimary)),
-        );
+    }) => MenuItemButton(
+      onPressed: onPressed,
+      trailingIcon: checked
+          ? Icon(Icons.check_rounded, size: 18, color: colors.accent)
+          : null,
+      child: Text(label, style: AppTypography.bodyMedium(colors.textPrimary)),
+    );
 
     return MenuAnchor(
       style: MenuStyle(
@@ -171,14 +168,16 @@ class _MoreMenu extends ConsumerWidget {
         item(
           'Grid',
           checked: settings.viewMode == LibraryViewMode.grid,
-          onPressed: () => ref.read(settingsProvider.notifier).update(
-              (s) => s.copyWith(viewMode: LibraryViewMode.grid)),
+          onPressed: () => ref
+              .read(settingsProvider.notifier)
+              .update((s) => s.copyWith(viewMode: LibraryViewMode.grid)),
         ),
         item(
           'List',
           checked: settings.viewMode == LibraryViewMode.list,
-          onPressed: () => ref.read(settingsProvider.notifier).update(
-              (s) => s.copyWith(viewMode: LibraryViewMode.list)),
+          onPressed: () => ref
+              .read(settingsProvider.notifier)
+              .update((s) => s.copyWith(viewMode: LibraryViewMode.list)),
         ),
         const Divider(),
         for (final mode in LibrarySortMode.values)
@@ -201,8 +200,7 @@ class _MoreMenu extends ConsumerWidget {
       ],
       builder: (context, controller, _) => PressableTap(
         style: PressStyle.dim,
-        onTap: () =>
-            controller.isOpen ? controller.close() : controller.open(),
+        onTap: () => controller.isOpen ? controller.close() : controller.open(),
         child: Icon(
           Icons.more_horiz_rounded,
           color: colors.onShell,
@@ -231,16 +229,18 @@ class _HomeSearchBar extends StatelessWidget {
         onTap: () => context.push('/search'),
         child: Container(
           height: 48,
-          padding:
-              const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           decoration: BoxDecoration(
             color: colors.shellElevated,
             borderRadius: AppShapes.pillRadius,
           ),
           child: Row(
             children: [
-              Icon(Icons.search_rounded,
-                  color: colors.onShellMuted, semanticLabel: 'Search'),
+              Icon(
+                Icons.search_rounded,
+                color: colors.onShellMuted,
+                semanticLabel: 'Search',
+              ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Search by title or text',
@@ -288,8 +288,7 @@ class _LibraryContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final viewMode = ref
-        .watch(settingsProvider.select((s) => s.viewMode));
+    final viewMode = ref.watch(settingsProvider.select((s) => s.viewMode));
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -300,8 +299,7 @@ class _LibraryContent extends ConsumerWidget {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 itemCount: folders.length,
                 itemBuilder: (context, index) {
                   final folder = folders[index];
@@ -309,8 +307,7 @@ class _LibraryContent extends ConsumerWidget {
                       .where((d) => d.folderId == folder.id)
                       .length;
                   return Padding(
-                    padding:
-                        const EdgeInsets.only(right: AppSpacing.md),
+                    padding: const EdgeInsets.only(right: AppSpacing.md),
                     child: FolderCard(
                       folder: folder,
                       documentCount: count,
@@ -325,18 +322,14 @@ class _LibraryContent extends ConsumerWidget {
           const SliverToBoxAdapter(child: SizedBox.shrink())
         else
           _DocumentsSliver(documents: rootDocs, viewMode: viewMode),
-        const SliverToBoxAdapter(
-            child: SizedBox(height: AppSpacing.xl)),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
       ],
     );
   }
 }
 
 class _DocumentsSliver extends ConsumerWidget {
-  const _DocumentsSliver({
-    required this.documents,
-    required this.viewMode,
-  });
+  const _DocumentsSliver({required this.documents, required this.viewMode});
 
   final List<ScanDocument> documents;
   final LibraryViewMode viewMode;
@@ -345,8 +338,7 @@ class _DocumentsSliver extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (viewMode == LibraryViewMode.list) {
       return SliverPadding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         sliver: SliverList.builder(
           itemCount: documents.length,
           itemBuilder: (context, index) {

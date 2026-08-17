@@ -35,8 +35,11 @@ class DocumentThumbnail extends ConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: fileName == null
-          ? Icon(Icons.description_outlined,
-              color: colors.textSecondary, size: 28)
+          ? Icon(
+              Icons.description_outlined,
+              color: colors.textSecondary,
+              size: 28,
+            )
           : Image.file(
               File(resolve(fileName)),
               fit: BoxFit.cover,
@@ -149,8 +152,11 @@ class DocumentRow extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded,
-                color: metaColor, semanticLabel: 'Open'),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: metaColor,
+              semanticLabel: 'Open',
+            ),
           ],
         ),
       ),

@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,7 +14,9 @@ import 'package:scanpdf/core/widgets/adaptive_dialog.dart';
 import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/home/presentation/providers/documents_provider.dart';
 import 'package:scanpdf/features/paywall/presentation/providers/plus_provider.dart';
+import 'package:scanpdf/features/viewer/data/signature_renderer.dart';
 import 'package:scanpdf/features/viewer/presentation/providers/viewer_actions_provider.dart';
+import 'package:scanpdf/shared/models/scan_document.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
 
 /// Sign flow (Jira §12 Edit → Sign): draw or pick a signature, drag and
@@ -31,7 +31,6 @@ class SignScreen extends ConsumerStatefulWidget {
 }
 
 class _SignScreenState extends ConsumerState<SignScreen> {
-  final GlobalKey _padKey = GlobalKey();
   final List<List<Offset>> _strokes = [];
   Uint8List? _signaturePng;
   int _pageIndex = 0;
@@ -44,14 +43,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
   bool _applying = false;
 
   Future<Uint8List?> _renderSignature() async {
-    if (_strokes.isEmpty) return null;
-    final boundary = _padKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
-    if (boundary == null) return null;
-    final image = await boundary.toImage(pixelRatio: 3);
-    final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    image.dispose();
-    return data?.buffer.asUint8List();
+    return SignatureRenderer.render(_strokes);
   }
 
   Future<void> _useDrawn() async {
@@ -85,7 +77,9 @@ class _SignScreenState extends ConsumerState<SignScreen> {
     if (png == null || doc == null || _applying) return;
     setState(() => _applying = true);
     try {
-      await ref.read(viewerActionsProvider).applySignature(
+      await ref
+          .read(viewerActionsProvider)
+          .applySignature(
             document: doc,
             pageIndex: _pageIndex,
             signaturePng: png,
@@ -115,11 +109,13 @@ class _SignScreenState extends ConsumerState<SignScreen> {
         leading: PressableTap(
           style: PressStyle.dim,
           onTap: () => context.pop(),
-          child: Icon(Icons.close_rounded,
-              color: colors.textPrimary, semanticLabel: 'Cancel'),
+          child: Icon(
+            Icons.close_rounded,
+            color: colors.textPrimary,
+            semanticLabel: 'Cancel',
+          ),
         ),
-        title: Text('Sign',
-            style: AppTypography.title(colors.textPrimary)),
+        title: Text('Sign', style: AppTypography.title(colors.textPrimary)),
         actions: [
           if (_signaturePng != null)
             Padding(
@@ -133,12 +129,15 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                     vertical: AppSpacing.sm,
                   ),
                   decoration: BoxDecoration(
-                    color: colors.accent
-                        .withValues(alpha: _applying ? 0.55 : 1),
+                    color: colors.accent.withValues(
+                      alpha: _applying ? 0.55 : 1,
+                    ),
                     borderRadius: AppShapes.pillRadius,
                   ),
-                  child: Text(_applying ? 'Applying…' : 'Apply',
-                      style: AppTypography.bodyMedium(Colors.white)),
+                  child: Text(
+                    _applying ? 'Applying…' : 'Apply',
+                    style: AppTypography.bodyMedium(Colors.white),
+                  ),
                 ),
               ),
             ),
@@ -155,8 +154,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
   Widget _buildDrawStage() {
     final colors = context.colors;
     final saved = ref.watch(signatureStoreProvider).getAll();
-    final plusActive =
-        ref.watch(plusProvider.select((s) => s.isActive));
+    final plusActive = ref.watch(plusProvider.select((s) => s.isActive));
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -172,12 +170,11 @@ class _SignScreenState extends ConsumerState<SignScreen> {
               ),
               clipBehavior: Clip.antiAlias,
               child: RepaintBoundary(
-                key: _padKey,
                 child: GestureDetector(
-                  onPanStart: (d) => setState(
-                      () => _strokes.add([d.localPosition])),
-                  onPanUpdate: (d) => setState(
-                      () => _strokes.last.add(d.localPosition)),
+                  onPanStart: (d) =>
+                      setState(() => _strokes.add([d.localPosition])),
+                  onPanUpdate: (d) =>
+                      setState(() => _strokes.last.add(d.localPosition)),
                   child: CustomPaint(
                     size: Size.infinite,
                     painter: _StrokesPainter(
@@ -201,15 +198,17 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                   enabled: _strokes.isNotEmpty,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.md),
+                      vertical: AppSpacing.md,
+                    ),
                     decoration: BoxDecoration(
                       color: colors.toolCard,
                       borderRadius: AppShapes.buttonRadius,
                     ),
-                    child: Text('Clear',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodyMedium(
-                            colors.textPrimary)),
+                    child: Text(
+                      'Clear',
+                      textAlign: TextAlign.center,
+                      style: AppTypography.bodyMedium(colors.textPrimary),
+                    ),
                   ),
                 ),
               ),
@@ -220,17 +219,19 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                   enabled: _strokes.isNotEmpty,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.md),
+                      vertical: AppSpacing.md,
+                    ),
                     decoration: BoxDecoration(
                       color: _strokes.isEmpty
                           ? colors.accent.withValues(alpha: 0.4)
                           : colors.accent,
                       borderRadius: AppShapes.buttonRadius,
                     ),
-                    child: Text('Use signature',
-                        textAlign: TextAlign.center,
-                        style:
-                            AppTypography.bodyMedium(Colors.white)),
+                    child: Text(
+                      'Use signature',
+                      textAlign: TextAlign.center,
+                      style: AppTypography.bodyMedium(Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -253,9 +254,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
-                  plusActive
-                      ? 'Save for reuse'
-                      : 'Save for reuse — Plus',
+                  plusActive ? 'Save for reuse' : 'Save for reuse — Plus',
                   style: AppTypography.caption(colors.accent),
                 ),
               ],
@@ -263,8 +262,10 @@ class _SignScreenState extends ConsumerState<SignScreen> {
           ),
           if (saved.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.lg),
-            Text('Saved signatures',
-                style: AppTypography.label(colors.textSecondary)),
+            Text(
+              'Saved signatures',
+              style: AppTypography.label(colors.textSecondary),
+            ),
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
               height: 56,
@@ -274,8 +275,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                 itemBuilder: (context, index) {
                   final signature = saved[index];
                   return Padding(
-                    padding:
-                        const EdgeInsets.only(right: AppSpacing.sm),
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
                     child: PressableTap(
                       onTap: () async {
                         if (!plusActive) {
@@ -294,8 +294,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                         setState(() {});
                       },
                       child: Container(
-                        padding:
-                            const EdgeInsets.all(AppSpacing.sm),
+                        padding: const EdgeInsets.all(AppSpacing.sm),
                         decoration: BoxDecoration(
                           color: colors.toolCard,
                           borderRadius: AppShapes.thumbnailRadius,
@@ -303,16 +302,21 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                         child: Column(
                           children: [
                             Image.file(
-                              File(ref.read(resolvePathProvider)(
-                                  signature.fileName)),
+                              File(
+                                ref.read(resolvePathProvider)(
+                                  signature.fileName,
+                                ),
+                              ),
                               height: 24,
                               errorBuilder: (context, _, _) =>
-                                  const SizedBox(
-                                      width: 24, height: 24),
+                                  const SizedBox(width: 24, height: 24),
                             ),
-                            Text(signature.name,
-                                style: AppTypography.caption(
-                                    colors.textSecondary)),
+                            Text(
+                              signature.name,
+                              style: AppTypography.caption(
+                                colors.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -327,7 +331,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
     );
   }
 
-  Widget _buildPlaceStage(dynamic doc) {
+  Widget _buildPlaceStage(ScanDocument doc) {
     final colors = context.colors;
     final resolve = ref.read(resolvePathProvider);
     return Column(
@@ -335,50 +339,53 @@ class _SignScreenState extends ConsumerState<SignScreen> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final box = constraints.biggest;
-                return GestureDetector(
-                  onScaleStart: (d) {
-                    _dragStartCenter = _center;
-                    _scaleStartWidth = _widthFraction;
-                  },
-                  onScaleUpdate: (d) => setState(() {
-                    final start = _dragStartCenter ?? _center;
-                    _center = Offset(
-                      (start.dx + d.focalPointDelta.dx / box.width)
-                          .clamp(0.05, 0.95),
-                      (start.dy + d.focalPointDelta.dy / box.height)
-                          .clamp(0.05, 0.95),
-                    );
-                    _dragStartCenter = _center;
-                    _widthFraction = (_scaleStartWidth * d.scale)
-                        .clamp(0.1, 0.85);
-                  }),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Center(
-                        child: Image.file(
-                          File(resolve(doc
-                              .pages[_pageIndex].processedFileName)),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment(
-                          _center.dx * 2 - 1,
-                          _center.dy * 2 - 1,
-                        ),
-                        child: SizedBox(
-                          width: box.width * _widthFraction,
-                          child: Image.memory(_signaturePng!),
-                        ),
-                      ),
-                    ],
+            child: Center(
+              child: Stack(
+                children: [
+                  Image.file(
+                    File(resolve(doc.pages[_pageIndex].processedFileName)),
+                    fit: BoxFit.contain,
                   ),
-                );
-              },
+                  Positioned.fill(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final box = constraints.biggest;
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onScaleStart: (_) {
+                            _dragStartCenter = _center;
+                            _scaleStartWidth = _widthFraction;
+                          },
+                          onScaleUpdate: (details) => setState(() {
+                            final start = _dragStartCenter ?? _center;
+                            _center = Offset(
+                              (start.dx +
+                                      details.focalPointDelta.dx / box.width)
+                                  .clamp(0.05, 0.95),
+                              (start.dy +
+                                      details.focalPointDelta.dy / box.height)
+                                  .clamp(0.05, 0.95),
+                            );
+                            _dragStartCenter = _center;
+                            _widthFraction = (_scaleStartWidth * details.scale)
+                                .clamp(0.1, 0.85);
+                          }),
+                          child: Align(
+                            alignment: Alignment(
+                              _center.dx * 2 - 1,
+                              _center.dy * 2 - 1,
+                            ),
+                            child: SizedBox(
+                              width: box.width * _widthFraction,
+                              child: Image.memory(_signaturePng!),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -396,13 +403,11 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                   height: 40,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: doc.pageCount as int,
+                    itemCount: doc.pageCount,
                     itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.only(
-                          right: AppSpacing.sm),
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
                       child: PressableTap(
-                        onTap: () =>
-                            setState(() => _pageIndex = index),
+                        onTap: () => setState(() => _pageIndex = index),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.md,
@@ -431,8 +436,10 @@ class _SignScreenState extends ConsumerState<SignScreen> {
               const SizedBox(height: AppSpacing.sm),
               PressableTap(
                 onTap: () => setState(() => _signaturePng = null),
-                child: Text('Back to drawing',
-                    style: AppTypography.caption(colors.accent)),
+                child: Text(
+                  'Back to drawing',
+                  style: AppTypography.caption(colors.accent),
+                ),
               ),
             ],
           ),

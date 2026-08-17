@@ -31,8 +31,7 @@ class DocumentViewerScreen extends ConsumerStatefulWidget {
       _DocumentViewerScreenState();
 }
 
-class _DocumentViewerScreenState
-    extends ConsumerState<DocumentViewerScreen> {
+class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
   int _page = 0;
 
   Future<void> _rename(ScanDocument doc) async {
@@ -106,9 +105,7 @@ class _DocumentViewerScreenState
               onTap: () async {
                 Navigator.of(context).pop();
                 if (!doc.hasOcr) {
-                  await ref
-                      .read(scanSaverProvider)
-                      .runOcr(doc.id);
+                  await ref.read(scanSaverProvider).runOcr(doc.id);
                 }
                 final updated = ref
                     .read(documentRepositoryProvider)
@@ -159,26 +156,27 @@ class _DocumentViewerScreenState
           AppSpacing.lg,
           AppSpacing.xl,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final other in candidates)
-              DocumentRow(
-                document: other,
-                onShell: false,
-                onLongPress: () {},
-                onTap: () async {
-                  Navigator.of(context).pop();
-                  final merged = await ref
-                      .read(viewerActionsProvider)
-                      .merge(doc, other);
-                  Haptics.success();
-                  if (mounted) {
-                    context.pushReplacement('/document/${merged.id}');
-                  }
-                },
-              ),
-          ],
+        child: ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: candidates.length,
+          itemBuilder: (context, index) {
+            final other = candidates[index];
+            return DocumentRow(
+              document: other,
+              onShell: false,
+              onLongPress: () {},
+              onTap: () async {
+                Navigator.of(context).pop();
+                final merged = await ref
+                    .read(viewerActionsProvider)
+                    .merge(doc, other);
+                Haptics.success();
+                if (!mounted) return;
+                this.context.pushReplacement('/document/${merged.id}');
+              },
+            );
+          },
         ),
       ),
     );
@@ -200,10 +198,12 @@ class _DocumentViewerScreenState
         leading: PressableTap(
           style: PressStyle.dim,
           onTap: () => context.pop(),
-          child: Icon(Icons.arrow_back_ios_new_rounded,
-              color: colors.textPrimary,
-              size: 20,
-              semanticLabel: 'Back'),
+          child: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: colors.textPrimary,
+            size: 20,
+            semanticLabel: 'Back',
+          ),
         ),
         title: PressableTap(
           style: PressStyle.dim,
@@ -218,10 +218,12 @@ class _DocumentViewerScreenState
         actions: [
           PressableTap(
             style: PressStyle.dim,
-            onTap: () =>
-                ref.read(exportServiceProvider).sharePdf(doc),
-            child: Icon(Icons.ios_share_rounded,
-                color: colors.textPrimary, semanticLabel: 'Share'),
+            onTap: () => ref.read(exportServiceProvider).sharePdf(doc),
+            child: Icon(
+              Icons.ios_share_rounded,
+              color: colors.textPrimary,
+              semanticLabel: 'Share',
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           _ViewerMenu(
@@ -247,8 +249,7 @@ class _DocumentViewerScreenState
                       child: ClipRRect(
                         borderRadius: AppShapes.thumbnailRadius,
                         child: Image.file(
-                          File(resolve(
-                              doc.pages[index].processedFileName)),
+                          File(resolve(doc.pages[index].processedFileName)),
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -264,10 +265,8 @@ class _DocumentViewerScreenState
             const SizedBox(height: AppSpacing.sm),
             _ViewerToolbar(
               onExport: () => _export(doc),
-              onSign: () =>
-                  context.push('/document/${doc.id}/sign'),
-              onText: () =>
-                  context.push('/document/${doc.id}/text'),
+              onSign: () => context.push('/document/${doc.id}/sign'),
+              onText: () => context.push('/document/${doc.id}/text'),
               onMerge: () => _merge(doc),
             ),
           ],
@@ -301,26 +300,34 @@ class _ViewerMenu extends StatelessWidget {
       menuChildren: [
         MenuItemButton(
           onPressed: onRename,
-          child: Text('Rename',
-              style: AppTypography.bodyMedium(colors.textPrimary)),
+          child: Text(
+            'Rename',
+            style: AppTypography.bodyMedium(colors.textPrimary),
+          ),
         ),
         MenuItemButton(
           onPressed: onMove,
-          child: Text('Move to folder',
-              style: AppTypography.bodyMedium(colors.textPrimary)),
+          child: Text(
+            'Move to folder',
+            style: AppTypography.bodyMedium(colors.textPrimary),
+          ),
         ),
         MenuItemButton(
           onPressed: onTrash,
-          child: Text('Move to Trash',
-              style: AppTypography.bodyMedium(colors.danger)),
+          child: Text(
+            'Move to Trash',
+            style: AppTypography.bodyMedium(colors.danger),
+          ),
         ),
       ],
       builder: (context, controller, _) => PressableTap(
         style: PressStyle.dim,
-        onTap: () =>
-            controller.isOpen ? controller.close() : controller.open(),
-        child: Icon(Icons.more_horiz_rounded,
-            color: colors.textPrimary, semanticLabel: 'More options'),
+        onTap: () => controller.isOpen ? controller.close() : controller.open(),
+        child: Icon(
+          Icons.more_horiz_rounded,
+          color: colors.textPrimary,
+          semanticLabel: 'More options',
+        ),
       ),
     );
   }
@@ -350,13 +357,14 @@ class _ViewerToolbar extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon,
-                    color: colors.textPrimary,
-                    size: 22,
-                    semanticLabel: label),
+                Icon(
+                  icon,
+                  color: colors.textPrimary,
+                  size: 22,
+                  semanticLabel: label,
+                ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(label,
-                    style: AppTypography.label(colors.textSecondary)),
+                Text(label, style: AppTypography.label(colors.textSecondary)),
               ],
             ),
           ),

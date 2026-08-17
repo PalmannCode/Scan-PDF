@@ -11,10 +11,19 @@ class FolderRepositoryImpl implements FolderRepository {
   final Box<String> box;
 
   @override
-  List<ScanFolder> getAll() => box.values
-      .map((raw) =>
-          ScanFolder.fromJson(jsonDecode(raw) as Map<String, dynamic>))
-      .toList();
+  List<ScanFolder> getAll() {
+    final folders = <ScanFolder>[];
+    for (final raw in box.values) {
+      try {
+        folders.add(
+          ScanFolder.fromJson(jsonDecode(raw) as Map<String, dynamic>),
+        );
+      } catch (_) {
+        // Keep valid folders available if one stored entry is damaged.
+      }
+    }
+    return folders;
+  }
 
   @override
   Future<void> upsert(ScanFolder folder) =>

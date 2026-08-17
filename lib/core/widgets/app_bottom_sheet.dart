@@ -74,9 +74,7 @@ abstract class AppBottomSheet {
               ),
             Flexible(
               child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: context.viewInsets.bottom,
-                ),
+                padding: EdgeInsets.only(bottom: context.viewInsets.bottom),
                 child: scrollable
                     ? SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),

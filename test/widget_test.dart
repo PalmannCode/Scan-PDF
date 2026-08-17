@@ -7,10 +7,7 @@ import 'package:scanpdf/features/event/domain/event_phase.dart';
 void main() {
   group('deep link resolver', () {
     test('event link routes to the event screen', () {
-      expect(
-        resolveDeepLink(Uri.parse('scanpdf://receipt-rescue')),
-        '/event',
-      );
+      expect(resolveDeepLink(Uri.parse('scanpdf://receipt-rescue')), '/event');
     });
 
     test('unknown host falls back to home', () {
@@ -18,17 +15,11 @@ void main() {
     });
 
     test('unknown scheme falls back to home', () {
-      expect(
-        resolveDeepLink(Uri.parse('otherapp://receipt-rescue')),
-        '/',
-      );
+      expect(resolveDeepLink(Uri.parse('otherapp://receipt-rescue')), '/');
     });
 
     test('deep link constant matches the resolver contract', () {
-      expect(
-        resolveDeepLink(Uri.parse(AppConstants.eventDeepLink)),
-        '/event',
-      );
+      expect(resolveDeepLink(Uri.parse(AppConstants.eventDeepLink)), '/event');
     });
   });
 
@@ -44,6 +35,19 @@ void main() {
 
     test('after the window is ended', () {
       expect(eventPhaseAt(DateTime(2026, 9, 18)), EventPhase.ended);
+    });
+  });
+
+  group('release configuration', () {
+    test('uses the approved monthly App Store product', () {
+      expect(AppConstants.plusProductId, 'plus_pdf_monthly');
+      expect(AppConstants.plusFallbackPrice, r'$3.99');
+      expect(AppConstants.plusBillingPeriod, 'month');
+    });
+
+    test('keeps the approved bundle and App Store identifiers', () {
+      expect(AppConstants.bundleId, 'com.futurafund.scanpdf');
+      expect(AppConstants.appStoreId, '6792221523');
     });
   });
 }

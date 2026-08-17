@@ -53,29 +53,27 @@ class _ToolsBody extends ConsumerWidget {
     final export = ref.read(exportServiceProvider);
 
     List<Widget> section(String name, List<_Tool> tools) => [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.lg,
-              AppSpacing.xl,
-              AppSpacing.sm,
-            ),
-            child: Text(name,
-                style: AppTypography.label(
-                    context.colors.textSecondary)),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg),
-            child: Wrap(
-              spacing: AppSpacing.md,
-              runSpacing: AppSpacing.md,
-              children: [
-                for (final tool in tools) _ToolCard(tool: tool)
-              ],
-            ),
-          ),
-        ];
+      Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xl,
+          AppSpacing.lg,
+          AppSpacing.xl,
+          AppSpacing.sm,
+        ),
+        child: Text(
+          name,
+          style: AppTypography.label(context.colors.textSecondary),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        child: Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.md,
+          children: [for (final tool in tools) _ToolCard(tool: tool)],
+        ),
+      ),
+    ];
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -133,55 +131,53 @@ class _ToolsBody extends ConsumerWidget {
           _Tool(
             icon: Icons.picture_as_pdf_outlined,
             label: 'To PDF',
-            onTap: () => _withDocument(
-                context, ref, 'Export to PDF', export.sharePdf),
+            onTap: () =>
+                _withDocument(context, ref, 'Export to PDF', export.sharePdf),
           ),
           _Tool(
             icon: Icons.image_outlined,
             label: 'To Image',
             onTap: () => _withDocument(
-                context,
-                ref,
-                'Export to images',
-                (doc) => export.shareImages(doc, ExportFormat.jpg)),
+              context,
+              ref,
+              'Export to images',
+              (doc) => export.shareImages(doc, ExportFormat.jpg),
+            ),
           ),
           _Tool(
             icon: Icons.notes_rounded,
             label: 'To Text',
-            onTap: () => _withDocument(
-                context,
-                ref,
-                'Export recognized text',
-                (doc) async {
-                  if (doc.hasOcr) {
-                    await export.shareTxt(doc);
-                  } else if (context.mounted) {
-                    context.push('/document/${doc.id}/text');
-                  }
-                }),
+            onTap: () => _withDocument(context, ref, 'Export recognized text', (
+              doc,
+            ) async {
+              if (doc.hasOcr) {
+                await export.shareTxt(doc);
+              } else if (context.mounted) {
+                context.push('/document/${doc.id}/text');
+              }
+            }),
           ),
         ]),
         ...section('EDIT', [
           _Tool(
             icon: Icons.draw_outlined,
             label: 'Sign',
-            onTap: () => _withDocument(
-                context, ref, 'Sign a document',
-                (doc) async {
-              if (context.mounted) {
-                context.push('/document/${doc.id}/sign');
-              }
-            }),
+            onTap: () =>
+                _withDocument(context, ref, 'Sign a document', (doc) async {
+                  if (context.mounted) {
+                    context.push('/document/${doc.id}/sign');
+                  }
+                }),
           ),
           _Tool(
             icon: Icons.merge_rounded,
             label: 'Merge',
-            onTap: () => _withDocument(
-                context, ref, 'Merge documents', (doc) async {
-              if (context.mounted) {
-                context.push('/document/${doc.id}');
-              }
-            }),
+            onTap: () =>
+                _withDocument(context, ref, 'Merge documents', (doc) async {
+                  if (context.mounted) {
+                    context.push('/document/${doc.id}');
+                  }
+                }),
           ),
         ]),
         ...section('UTILITIES', [
@@ -189,8 +185,11 @@ class _ToolsBody extends ConsumerWidget {
             icon: Icons.print_outlined,
             label: 'Print',
             onTap: () => _withDocument(
-                context, ref, 'Print a document',
-                export.printDocument),
+              context,
+              ref,
+              'Print a document',
+              export.printDocument,
+            ),
           ),
         ]),
         const SizedBox(height: AppSpacing.xxl),
@@ -218,28 +217,26 @@ Future<ScanDocument?> pickDocument(
         AppSpacing.lg,
         AppSpacing.xl,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final doc in docs)
-            DocumentRow(
-              document: doc,
-              onShell: false,
-              onLongPress: () {},
-              onTap: () => Navigator.of(context).pop(doc),
-            ),
-        ],
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: docs.length,
+        itemBuilder: (context, index) {
+          final doc = docs[index];
+          return DocumentRow(
+            document: doc,
+            onShell: false,
+            onLongPress: () {},
+            onTap: () => Navigator.of(context).pop(doc),
+          );
+        },
       ),
     ),
   );
 }
 
 class _Tool {
-  const _Tool({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  const _Tool({required this.icon, required this.label, required this.onTap});
 
   final IconData icon;
   final String label;
@@ -255,8 +252,7 @@ class _ToolCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final width =
-        (context.screenSize.width - AppSpacing.lg * 2 - AppSpacing.md * 3) /
-            4;
+        (context.screenSize.width - AppSpacing.lg * 2 - AppSpacing.md * 3) / 4;
     return PressableTap(
       onTap: tool.onTap,
       child: Container(
@@ -269,15 +265,14 @@ class _ToolCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(tool.icon,
-                color: colors.textPrimary,
-                size: 24,
-                semanticLabel: tool.label),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              tool.label,
-              style: AppTypography.caption(colors.textPrimary),
+            Icon(
+              tool.icon,
+              color: colors.textPrimary,
+              size: 24,
+              semanticLabel: tool.label,
             ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(tool.label, style: AppTypography.caption(colors.textPrimary)),
           ],
         ),
       ),

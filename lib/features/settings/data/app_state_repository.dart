@@ -53,8 +53,7 @@ class AppStateRepository {
     final raw = _box.get(_kEventProgress);
     if (raw == null) return const EventProgress();
     try {
-      return EventProgress.fromJson(
-          jsonDecode(raw) as Map<String, dynamic>);
+      return EventProgress.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
       return const EventProgress();
     }

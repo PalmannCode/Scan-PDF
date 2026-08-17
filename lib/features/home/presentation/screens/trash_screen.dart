@@ -14,6 +14,7 @@ import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/core/widgets/staggered_column.dart';
 import 'package:scanpdf/features/home/presentation/providers/documents_provider.dart';
 import 'package:scanpdf/features/home/presentation/widgets/document_tile.dart';
+import 'package:scanpdf/shared/models/scan_document.dart';
 
 class TrashScreen extends ConsumerWidget {
   const TrashScreen({super.key});
@@ -49,10 +50,12 @@ class TrashScreen extends ConsumerWidget {
                     PressableTap(
                       style: PressStyle.dim,
                       onTap: () => context.pop(),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          color: colors.onShell,
-                          size: 20,
-                          semanticLabel: 'Back'),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: colors.onShell,
+                        size: 20,
+                        semanticLabel: 'Back',
+                      ),
                     ),
                     Expanded(
                       child: Text(
@@ -70,9 +73,7 @@ class TrashScreen extends ConsumerWidget {
                       child: Text(
                         'Empty',
                         style: AppTypography.bodyMedium(
-                          trashed.isEmpty
-                              ? colors.onShellMuted
-                              : colors.danger,
+                          trashed.isEmpty ? colors.onShellMuted : colors.danger,
                         ),
                       ),
                     ),
@@ -91,7 +92,8 @@ class TrashScreen extends ConsumerWidget {
                     : ListView.builder(
                         physics: const BouncingScrollPhysics(),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg),
+                          horizontal: AppSpacing.lg,
+                        ),
                         itemCount: trashed.length,
                         itemBuilder: (context, index) {
                           final doc = trashed[index];
@@ -110,7 +112,7 @@ class TrashScreen extends ConsumerWidget {
 class _TrashRow extends ConsumerWidget {
   const _TrashRow({required this.doc, required this.index});
 
-  final dynamic doc;
+  final ScanDocument doc;
   final int index;
 
   Future<void> _deleteForever(BuildContext context, WidgetRef ref) async {
@@ -152,20 +154,21 @@ class _TrashRow extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Deleted ${DateFormat('d MMM').format(doc.deletedAt ?? doc.modifiedAt)}',
-                  style:
-                      AppTypography.mono(colors.onShellMuted, size: 11),
+                  style: AppTypography.mono(colors.onShellMuted, size: 11),
                 ),
               ],
             ),
           ),
           PressableTap(
             style: PressStyle.dim,
-            onTap: () =>
-                ref.read(documentsProvider.notifier).restore(doc.id),
+            onTap: () => ref.read(documentsProvider.notifier).restore(doc.id),
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Icon(Icons.restore_rounded,
-                  color: colors.onShell, semanticLabel: 'Restore'),
+              child: Icon(
+                Icons.restore_rounded,
+                color: colors.onShell,
+                semanticLabel: 'Restore',
+              ),
             ),
           ),
           PressableTap(
@@ -173,9 +176,11 @@ class _TrashRow extends ConsumerWidget {
             onTap: () => _deleteForever(context, ref),
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Icon(Icons.delete_forever_rounded,
-                  color: colors.danger,
-                  semanticLabel: 'Delete permanently'),
+              child: Icon(
+                Icons.delete_forever_rounded,
+                color: colors.danger,
+                semanticLabel: 'Delete permanently',
+              ),
             ),
           ),
         ],

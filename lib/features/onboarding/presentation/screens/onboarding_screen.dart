@@ -45,10 +45,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _finish();
       return;
     }
-    _controller.nextPage(
-      duration: AppMotion.sheet,
-      curve: AppMotion.enter,
-    );
+    _controller.nextPage(duration: AppMotion.sheet, curve: AppMotion.enter);
   }
 
   @override
@@ -87,21 +84,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     Haptics.selection();
                     setState(() => _page = index);
                   },
-                  itemBuilder: (context, index) =>
-                      _OnboardingPage(step: onboardingSteps[index], index: index),
+                  itemBuilder: (context, index) => _OnboardingPage(
+                    step: onboardingSteps[index],
+                    index: index,
+                  ),
                 ),
               ),
               _TickDashIndicator(current: _page),
               const SizedBox(height: AppSpacing.xl),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 child: PressableTap(
                   onTap: _next,
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.lg),
+                      vertical: AppSpacing.lg,
+                    ),
                     decoration: BoxDecoration(
                       color: colors.accent,
                       borderRadius: AppShapes.buttonRadius,
@@ -179,8 +178,7 @@ class _TickDashIndicator extends StatelessWidget {
           AnimatedContainer(
             duration: AppMotion.standard,
             curve: AppMotion.enter,
-            margin:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             width: i == current ? 28 : 14,
             height: 3,
             decoration: BoxDecoration(
@@ -202,7 +200,8 @@ class _ConsentFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final base = AppTypography.caption(
-        colors.onShellMuted.withValues(alpha: 0.8));
+      colors.onShellMuted.withValues(alpha: 0.8),
+    );
     final link = base.copyWith(
       color: colors.onShell,
       decoration: TextDecoration.underline,
@@ -220,9 +219,9 @@ class _ConsentFooter extends StatelessWidget {
               style: link,
               recognizer: TapGestureRecognizer()
                 ..onTap = () => launchUrl(
-                      Uri.parse(UrlConstants.privacyPolicy),
-                      mode: LaunchMode.inAppBrowserView,
-                    ),
+                  Uri.parse(UrlConstants.privacyPolicy),
+                  mode: LaunchMode.inAppBrowserView,
+                ),
             ),
             TextSpan(text: ' and ', style: base),
             TextSpan(
@@ -230,9 +229,9 @@ class _ConsentFooter extends StatelessWidget {
               style: link,
               recognizer: TapGestureRecognizer()
                 ..onTap = () => launchUrl(
-                      Uri.parse(UrlConstants.termsOfService),
-                      mode: LaunchMode.inAppBrowserView,
-                    ),
+                  Uri.parse(UrlConstants.termsOfService),
+                  mode: LaunchMode.inAppBrowserView,
+                ),
             ),
           ],
         ),

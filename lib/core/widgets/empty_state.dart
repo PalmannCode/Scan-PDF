@@ -39,52 +39,53 @@ class EmptyState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            illustration,
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              title,
-              style: AppTypography.headline(titleColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              subtitle,
-              style: AppTypography.body(subColor),
-              textAlign: TextAlign.center,
-            ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.xl),
-              PressableTap(
-                onTap: onAction,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.md,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.accent,
-                    borderRadius: AppShapes.buttonRadius,
-                  ),
-                  child: Text(
-                    actionLabel!,
-                    style: AppTypography.bodyMedium(Colors.white),
-                  ),
+        child:
+            Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    illustration,
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      title,
+                      style: AppTypography.headline(titleColor),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      subtitle,
+                      style: AppTypography.body(subColor),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (actionLabel != null && onAction != null) ...[
+                      const SizedBox(height: AppSpacing.xl),
+                      PressableTap(
+                        onTap: onAction,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                            vertical: AppSpacing.md,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.accent,
+                            borderRadius: AppShapes.buttonRadius,
+                          ),
+                          child: Text(
+                            actionLabel!,
+                            style: AppTypography.bodyMedium(Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                )
+                .animate()
+                .fadeIn(duration: AppMotion.sheet, curve: AppMotion.enter)
+                .moveY(
+                  begin: 8,
+                  end: 0,
+                  duration: AppMotion.sheet,
+                  curve: AppMotion.enter,
                 ),
-              ),
-            ],
-          ],
-        )
-            .animate()
-            .fadeIn(duration: AppMotion.sheet, curve: AppMotion.enter)
-            .moveY(
-              begin: 8,
-              end: 0,
-              duration: AppMotion.sheet,
-              curve: AppMotion.enter,
-            ),
       ),
     );
   }

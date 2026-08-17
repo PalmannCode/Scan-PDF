@@ -32,14 +32,13 @@ class PlusState {
     bool? purchasing,
     String? error,
     bool clearError = false,
-  }) =>
-      PlusState(
-        isActive: isActive ?? this.isActive,
-        storeAvailable: storeAvailable ?? this.storeAvailable,
-        product: product ?? this.product,
-        purchasing: purchasing ?? this.purchasing,
-        error: clearError ? null : (error ?? this.error),
-      );
+  }) => PlusState(
+    isActive: isActive ?? this.isActive,
+    storeAvailable: storeAvailable ?? this.storeAvailable,
+    product: product ?? this.product,
+    purchasing: purchasing ?? this.purchasing,
+    error: clearError ? null : (error ?? this.error),
+  );
 }
 
 /// Direct App Store IAP wrapper (no third-party billing, no account).
@@ -70,13 +69,6 @@ class PurchaseService {
   }
 
   Future<void> loadProduct() async {
-    if (AppConstants.plusProductId.isEmpty) {
-      // Product not created in ASC yet — paywall shows store-unavailable.
-      debugPrint('PurchaseService: plusProductId is EMPTY; set the exact '
-          'ASC product ID in AppConstants before submitting the IAP.');
-      onStateChanged((s) => s.copyWith(storeAvailable: false));
-      return;
-    }
     try {
       final available = await _iap.isAvailable();
       debugPrint('PurchaseService: store available=$available');
@@ -84,10 +76,13 @@ class PurchaseService {
         onStateChanged((s) => s.copyWith(storeAvailable: false));
         return;
       }
-      final response =
-          await _iap.queryProductDetails({AppConstants.plusProductId});
-      debugPrint('PurchaseService: notFoundIDs=${response.notFoundIDs} '
-          'error=${response.error}');
+      final response = await _iap.queryProductDetails({
+        AppConstants.plusProductId,
+      });
+      debugPrint(
+        'PurchaseService: notFoundIDs=${response.notFoundIDs} '
+        'error=${response.error}',
+      );
       if (response.productDetails.isEmpty) {
         // Almost always: Paid Apps agreement not Active, product not
         // "Ready to Submit", ID mismatch, or running on the Simulator.
@@ -95,9 +90,7 @@ class PurchaseService {
         return;
       }
       final product = response.productDetails.first;
-      onStateChanged(
-        (s) => s.copyWith(storeAvailable: true, product: product),
-      );
+      onStateChanged((s) => s.copyWith(storeAvailable: true, product: product));
     } catch (error) {
       debugPrint('PurchaseService.loadProduct failed: $error');
       onStateChanged((s) => s.copyWith(storeAvailable: false));

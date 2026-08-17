@@ -29,6 +29,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
     with WidgetsBindingObserver {
   CameraController? _controller;
   bool _permissionDenied = false;
+  bool _cameraUnavailable = false;
   bool _initializing = true;
   bool _capturing = false;
   bool _showFilters = false;
@@ -50,9 +51,13 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
     setState(() {
       _initializing = true;
       _permissionDenied = false;
+      _cameraUnavailable = false;
     });
     try {
       final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        throw StateError('No camera is available on this device.');
+      }
       final back = cameras.firstWhere(
         (c) => c.lensDirection == CameraLensDirection.back,
         orElse: () => cameras.first,
@@ -78,21 +83,26 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
       setState(() {
         _initializing = false;
         _permissionDenied = e.code.contains('AccessDenied');
+        _cameraUnavailable = !_permissionDenied;
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _initializing = false);
+      setState(() {
+        _initializing = false;
+        _cameraUnavailable = true;
+      });
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) return;
-    if (state == AppLifecycleState.inactive) {
-      controller.dispose();
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      controller?.dispose();
       _controller = null;
-    } else if (state == AppLifecycleState.resumed) {
+    } else if (state == AppLifecycleState.resumed &&
+        (controller == null || !controller.value.isInitialized)) {
       _initCamera();
     }
   }
@@ -122,7 +132,13 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
         pages.last.copyWith(filter: _filter),
       );
     } on CameraException {
-      // Capture failed; the shutter simply stays available.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('The photo could not be captured. Try again.'),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _capturing = false);
@@ -153,8 +169,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
       final ok = await AdaptiveDialog.confirm(
         context,
         title: 'Discard scans?',
-        message:
-            '${session.pages.length} captured page(s) will be discarded.',
+        message: '${session.pages.length} captured page(s) will be discarded.',
         confirmLabel: 'Discard',
         destructive: true,
       );
@@ -203,10 +218,8 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
             CameraModeBar(
               mode: session.mode,
               filter: _filter,
-              onMode: (m) =>
-                  ref.read(scanSessionProvider.notifier).setMode(m),
-              onFilterTap: () =>
-                  setState(() => _showFilters = !_showFilters),
+              onMode: (m) => ref.read(scanSessionProvider.notifier).setMode(m),
+              onFilterTap: () => setState(() => _showFilters = !_showFilters),
             ),
             CameraShutterBar(
               capturing: _capturing,
@@ -227,8 +240,16 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
       return ErrorView(
         onShell: true,
         title: 'Camera access needed',
+        subtitle: 'Allow camera access in Settings to scan paper documents.',
+        onRetry: _initCamera,
+      );
+    }
+    if (_cameraUnavailable) {
+      return ErrorView(
+        onShell: true,
+        title: 'Camera unavailable',
         subtitle:
-            'Allow camera access in Settings to scan paper documents.',
+            'The camera could not be started. You can retry or import a photo instead.',
         onRetry: _initCamera,
       );
     }
@@ -270,9 +291,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
             child: const ColoredBox(color: Colors.white),
           ),
           if (_capturing)
-            ColoredBox(
-              color: colors.shellBg.withValues(alpha: 0.2),
-            ),
+            ColoredBox(color: colors.shellBg.withValues(alpha: 0.2)),
         ],
       ),
     );

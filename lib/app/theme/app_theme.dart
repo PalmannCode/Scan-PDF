@@ -120,7 +120,8 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
 }
 
 abstract class AppTheme {
-  static ThemeData light() => _build(AppColorsExtension.light, Brightness.light);
+  static ThemeData light() =>
+      _build(AppColorsExtension.light, Brightness.light);
   static ThemeData dark() => _build(AppColorsExtension.dark, Brightness.dark);
 
   static ThemeData _build(AppColorsExtension c, Brightness brightness) {
@@ -139,11 +140,7 @@ abstract class AppTheme {
       textTheme: AppTypography.textTheme(c.textPrimary, c.textSecondary),
       splashFactory: NoSplash.splashFactory,
       highlightColor: Colors.transparent,
-      dividerTheme: DividerThemeData(
-        color: c.hairline,
-        thickness: 1,
-        space: 1,
-      ),
+      dividerTheme: DividerThemeData(color: c.hairline, thickness: 1, space: 1),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,

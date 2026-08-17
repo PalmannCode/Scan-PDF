@@ -28,10 +28,10 @@ abstract class AppShapes {
 
   /// Soft shadow for light paper sheets only — never on the dark shell.
   static List<BoxShadow> softShadow(Color base) => [
-        BoxShadow(
-          color: base.withValues(alpha: 0.07),
-          blurRadius: 24,
-          offset: const Offset(0, 8),
-        ),
-      ];
+    BoxShadow(
+      color: base.withValues(alpha: 0.07),
+      blurRadius: 24,
+      offset: const Offset(0, 8),
+    ),
+  ];
 }

@@ -28,8 +28,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final settings = ref.watch(settingsProvider);
-    final plusActive =
-        ref.watch(plusProvider.select((s) => s.isActive));
+    final plusActive = ref.watch(plusProvider.select((s) => s.isActive));
     final eventPhase = currentEventPhase();
 
     return Scaffold(
@@ -38,11 +37,13 @@ class SettingsScreen extends ConsumerWidget {
         leading: PressableTap(
           style: PressStyle.dim,
           onTap: () => context.pop(),
-          child: Icon(Icons.close_rounded,
-              color: colors.textPrimary, semanticLabel: 'Close'),
+          child: Icon(
+            Icons.close_rounded,
+            color: colors.textPrimary,
+            semanticLabel: 'Close',
+          ),
         ),
-        title: Text('Settings',
-            style: AppTypography.title(colors.textPrimary)),
+        title: Text('Settings', style: AppTypography.title(colors.textPrimary)),
       ),
       body: SafeArea(
         child: ListView(
@@ -121,6 +122,22 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             SettingsSection(
+              title: 'SUBSCRIPTION',
+              children: [
+                SettingsTile(
+                  icon: Icons.restore_rounded,
+                  label: 'Restore Purchases',
+                  onTap: () => ref.read(plusProvider.notifier).restore(),
+                ),
+                SettingsTile(
+                  icon: Icons.manage_accounts_outlined,
+                  label: 'Manage Subscription',
+                  onTap: () =>
+                      _open('https://apps.apple.com/account/subscriptions'),
+                ),
+              ],
+            ),
+            SettingsSection(
               title: 'SUPPORT',
               children: [
                 SettingsTile(
@@ -131,8 +148,8 @@ class SettingsScreen extends ConsumerWidget {
                 SettingsTile(
                   icon: Icons.star_outline_rounded,
                   label: 'Rate App',
-                  onTap: () => _open(
-                      '${AppConstants.appStoreUrl}?action=write-review'),
+                  onTap: () =>
+                      _open('${AppConstants.appStoreUrl}?action=write-review'),
                 ),
               ],
             ),
@@ -207,34 +224,40 @@ class _PlusBanner extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [colors.accent, colors.accentDeep],
-          ),
+          gradient: LinearGradient(colors: [colors.accent, colors.accentDeep]),
           borderRadius: AppShapes.cardRadius,
         ),
         child: Row(
           children: [
-            const Icon(Icons.workspace_premium_rounded,
-                color: Colors.white,
-                size: 28,
-                semanticLabel: 'Plus'),
+            const Icon(
+              Icons.workspace_premium_rounded,
+              color: Colors.white,
+              size: 28,
+              semanticLabel: 'Plus',
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Upgrade to Plus',
-                      style: AppTypography.title(Colors.white)),
+                  Text(
+                    'Upgrade to Plus',
+                    style: AppTypography.title(Colors.white),
+                  ),
                   Text(
                     'Reusable signatures & priority support',
                     style: AppTypography.caption(
-                        Colors.white.withValues(alpha: 0.9)),
+                      Colors.white.withValues(alpha: 0.9),
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: Colors.white, semanticLabel: 'Open paywall'),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white,
+              semanticLabel: 'Open paywall',
+            ),
           ],
         ),
       ),
@@ -257,13 +280,17 @@ class _PlusActiveCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.verified_rounded,
-              color: colors.success,
-              size: 24,
-              semanticLabel: 'Plus active'),
+          Icon(
+            Icons.verified_rounded,
+            color: colors.success,
+            size: 24,
+            semanticLabel: 'Plus active',
+          ),
           const SizedBox(width: AppSpacing.md),
-          Text('Plus is active',
-              style: AppTypography.bodyMedium(colors.textPrimary)),
+          Text(
+            'Plus is active',
+            style: AppTypography.bodyMedium(colors.textPrimary),
+          ),
         ],
       ),
     );

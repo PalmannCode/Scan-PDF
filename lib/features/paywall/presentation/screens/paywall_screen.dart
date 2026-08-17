@@ -40,9 +40,11 @@ class PaywallScreen extends ConsumerWidget {
                   child: PressableTap(
                     style: PressStyle.dim,
                     onTap: () => context.pop(),
-                    child: Icon(Icons.close_rounded,
-                        color: colors.onShell,
-                        semanticLabel: 'Close paywall'),
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: colors.onShell,
+                      semanticLabel: 'Close paywall',
+                    ),
                   ),
                 ),
               ),
@@ -50,7 +52,8 @@ class PaywallScreen extends ConsumerWidget {
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xl),
+                    horizontal: AppSpacing.xl,
+                  ),
                   child: plus.isActive
                       ? const _PlusActiveBody()
                       : _PlusOfferBody(plus: plus),
@@ -73,11 +76,14 @@ class _PlusActiveBody extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: AppSpacing.huge),
-        Icon(Icons.verified_rounded,
-            color: colors.success, size: 56, semanticLabel: 'Active'),
+        Icon(
+          Icons.verified_rounded,
+          color: colors.success,
+          size: 56,
+          semanticLabel: 'Active',
+        ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Plus is active',
-            style: AppTypography.display(colors.onShell)),
+        Text('Plus is active', style: AppTypography.display(colors.onShell)),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'Saved signatures and priority support are unlocked. Manage the subscription in your App Store account settings.',
@@ -105,8 +111,7 @@ class _PlusOfferBody extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Scan PDF ',
-                style: AppTypography.display(colors.onShell)),
+            Text('Scan PDF ', style: AppTypography.display(colors.onShell)),
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
@@ -114,11 +119,11 @@ class _PlusOfferBody extends ConsumerWidget {
               ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                    colors: [colors.accent, colors.accentDeep]),
+                  colors: [colors.accent, colors.accentDeep],
+                ),
                 borderRadius: AppShapes.thumbnailRadius,
               ),
-              child: Text('PLUS',
-                  style: AppTypography.headline(Colors.white)),
+              child: Text('PLUS', style: AppTypography.headline(Colors.white)),
             ),
           ],
         ),
@@ -155,7 +160,7 @@ class _PlusOfferBody extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'then ${plus.priceLabel} per week',
+                'then ${plus.priceLabel} per ${AppConstants.plusBillingPeriod}',
                 style: AppTypography.mono(colors.onShellMuted, size: 13),
               ),
             ],
@@ -168,8 +173,7 @@ class _PlusOfferBody extends ConsumerWidget {
               : null,
           enabled: canBuy && !plus.purchasing,
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
             decoration: BoxDecoration(
               color: canBuy
                   ? colors.accent
@@ -180,8 +184,8 @@ class _PlusOfferBody extends ConsumerWidget {
               plus.purchasing
                   ? 'Processing…'
                   : canBuy
-                      ? 'Start free trial'
-                      : 'Store unavailable',
+                  ? 'Start free trial'
+                  : 'Store unavailable',
               textAlign: TextAlign.center,
               style: AppTypography.title(Colors.white),
             ),
@@ -193,6 +197,18 @@ class _PlusOfferBody extends ConsumerWidget {
             plus.error!,
             textAlign: TextAlign.center,
             style: AppTypography.caption(colors.danger),
+          ),
+        ],
+        if (!canBuy && !plus.purchasing) ...[
+          const SizedBox(height: AppSpacing.sm),
+          PressableTap(
+            style: PressStyle.dim,
+            onTap: () => ref.read(plusProvider.notifier).reloadProduct(),
+            child: Text(
+              'Check the App Store again',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMedium(colors.onShell),
+            ),
           ),
         ],
         const SizedBox(height: AppSpacing.md),
@@ -207,14 +223,15 @@ class _PlusOfferBody extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          'Auto-renewable weekly subscription. Payment is charged to your '
+          'Auto-renewable monthly subscription. Payment is charged to your '
           'Apple ID at confirmation. Renews automatically unless cancelled '
           'at least 24 hours before the end of the period. Manage or cancel '
           'any time in App Store settings. The app stays fully usable '
           'without Plus.',
           textAlign: TextAlign.center,
           style: AppTypography.caption(
-              colors.onShellMuted.withValues(alpha: 0.8)),
+            colors.onShellMuted.withValues(alpha: 0.8),
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         const _LegalLinks(),
@@ -250,19 +267,24 @@ class _Benefit extends StatelessWidget {
               color: colors.accent.withValues(alpha: 0.16),
               borderRadius: AppShapes.thumbnailRadius,
             ),
-            child: Icon(icon,
-                color: colors.accent, size: 22, semanticLabel: title),
+            child: Icon(
+              icon,
+              color: colors.accent,
+              size: 22,
+              semanticLabel: title,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: AppTypography.bodyMedium(colors.onShell)),
+                Text(title, style: AppTypography.bodyMedium(colors.onShell)),
                 const SizedBox(height: 2),
-                Text(subtitle,
-                    style: AppTypography.caption(colors.onShellMuted)),
+                Text(
+                  subtitle,
+                  style: AppTypography.caption(colors.onShellMuted),
+                ),
               ],
             ),
           ),
@@ -290,21 +312,22 @@ class _LegalLinks extends StatelessWidget {
             style: style,
             recognizer: TapGestureRecognizer()
               ..onTap = () => launchUrl(
-                    Uri.parse(UrlConstants.privacyPolicy),
-                    mode: LaunchMode.inAppBrowserView,
-                  ),
+                Uri.parse(UrlConstants.privacyPolicy),
+                mode: LaunchMode.inAppBrowserView,
+              ),
           ),
           TextSpan(
-              text: '   ·   ',
-              style: AppTypography.caption(colors.onShellMuted)),
+            text: '   ·   ',
+            style: AppTypography.caption(colors.onShellMuted),
+          ),
           TextSpan(
             text: 'Terms of Use',
             style: style,
             recognizer: TapGestureRecognizer()
               ..onTap = () => launchUrl(
-                    Uri.parse(UrlConstants.termsOfService),
-                    mode: LaunchMode.inAppBrowserView,
-                  ),
+                Uri.parse(UrlConstants.termsOfService),
+                mode: LaunchMode.inAppBrowserView,
+              ),
           ),
         ],
       ),

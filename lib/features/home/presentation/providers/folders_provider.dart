@@ -24,8 +24,9 @@ class Folders extends _$Folders {
     return folders;
   }
 
-  void refresh() => state = _repo.getAll()
-    ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  void refresh() =>
+      state = _repo.getAll()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
   Future<ScanFolder> create(String name) async {
     final now = DateTime.now();
@@ -43,9 +44,7 @@ class Folders extends _$Folders {
   Future<void> rename(String id, String name) async {
     final folder = state.where((f) => f.id == id).firstOrNull;
     if (folder == null) return;
-    await _repo.upsert(
-      folder.copyWith(name: name, modifiedAt: DateTime.now()),
-    );
+    await _repo.upsert(folder.copyWith(name: name, modifiedAt: DateTime.now()));
     refresh();
   }
 

@@ -38,8 +38,7 @@ class _CropScreenState extends ConsumerState<CropScreen> {
   @override
   void initState() {
     super.initState();
-    final page =
-        ref.read(scanSessionProvider).pages[widget.pageIndex];
+    final page = ref.read(scanSessionProvider).pages[widget.pageIndex];
     final c = page.corners;
     _corners = c != null && c.length == 8
         ? [
@@ -53,11 +52,11 @@ class _CropScreenState extends ConsumerState<CropScreen> {
   }
 
   List<Offset> _fullFrame() => const [
-        Offset(_defaultInset, _defaultInset),
-        Offset(1 - _defaultInset, _defaultInset),
-        Offset(1 - _defaultInset, 1 - _defaultInset),
-        Offset(_defaultInset, 1 - _defaultInset),
-      ];
+    Offset(_defaultInset, _defaultInset),
+    Offset(1 - _defaultInset, _defaultInset),
+    Offset(1 - _defaultInset, 1 - _defaultInset),
+    Offset(_defaultInset, 1 - _defaultInset),
+  ];
 
   Future<void> _loadImage(String path) async {
     final bytes = await File(path).readAsBytes();
@@ -73,12 +72,8 @@ class _CropScreenState extends ConsumerState<CropScreen> {
 
   Rect _displayRect(Size box) {
     final image = _image!;
-    final scale = math.min(
-      box.width / image.width,
-      box.height / image.height,
-    );
-    final size =
-        Size(image.width * scale, image.height * scale);
+    final scale = math.min(box.width / image.width, box.height / image.height);
+    final size = Size(image.width * scale, image.height * scale);
     final offset = Offset(
       (box.width - size.width) / 2,
       (box.height - size.height) / 2,
@@ -119,13 +114,14 @@ class _CropScreenState extends ConsumerState<CropScreen> {
 
   void _apply() {
     final notifier = ref.read(scanSessionProvider.notifier);
-    final page =
-        ref.read(scanSessionProvider).pages[widget.pageIndex];
+    final page = ref.read(scanSessionProvider).pages[widget.pageIndex];
     notifier.updatePage(
       widget.pageIndex,
-      page.copyWith(corners: [
-        for (final corner in _corners) ...[corner.dx, corner.dy],
-      ]),
+      page.copyWith(
+        corners: [
+          for (final corner in _corners) ...[corner.dx, corner.dy],
+        ],
+      ),
     );
     context.pop();
   }
@@ -139,19 +135,23 @@ class _CropScreenState extends ConsumerState<CropScreen> {
         leading: PressableTap(
           style: PressStyle.dim,
           onTap: () => context.pop(),
-          child: Icon(Icons.close_rounded,
-              color: colors.onShell, semanticLabel: 'Cancel crop'),
+          child: Icon(
+            Icons.close_rounded,
+            color: colors.onShell,
+            semanticLabel: 'Cancel crop',
+          ),
         ),
-        title: Text('Crop',
-            style: AppTypography.title(colors.onShell)),
+        title: Text('Crop', style: AppTypography.title(colors.onShell)),
         actions: [
           PressableTap(
             style: PressStyle.dim,
             onTap: () => setState(() => _corners = _fullFrame()),
             child: Padding(
               padding: const EdgeInsets.only(right: AppSpacing.lg),
-              child: Text('Reset',
-                  style: AppTypography.bodyMedium(colors.onShellMuted)),
+              child: Text(
+                'Reset',
+                style: AppTypography.bodyMedium(colors.onShellMuted),
+              ),
             ),
           ),
         ],
@@ -166,15 +166,13 @@ class _CropScreenState extends ConsumerState<CropScreen> {
                       padding: const EdgeInsets.all(AppSpacing.lg),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final rect =
-                              _displayRect(constraints.biggest);
+                          final rect = _displayRect(constraints.biggest);
                           return GestureDetector(
                             onPanStart: (d) =>
                                 _onPanStart(d.localPosition, rect),
                             onPanUpdate: (d) =>
                                 _onPanUpdate(d.localPosition, rect),
-                            onPanEnd: (_) =>
-                                setState(() => _dragging = null),
+                            onPanEnd: (_) => setState(() => _dragging = null),
                             child: CustomPaint(
                               size: constraints.biggest,
                               painter: _CropPainter(
@@ -196,8 +194,7 @@ class _CropScreenState extends ConsumerState<CropScreen> {
                 onTap: _apply,
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   decoration: BoxDecoration(
                     color: colors.accent,
                     borderRadius: AppShapes.buttonRadius,
@@ -243,9 +240,9 @@ class _CropPainter extends CustomPainter {
     );
 
     Offset point(int i) => Offset(
-          rect.left + corners[i].dx * rect.width,
-          rect.top + corners[i].dy * rect.height,
-        );
+      rect.left + corners[i].dx * rect.width,
+      rect.top + corners[i].dy * rect.height,
+    );
     final quad = Path()
       ..moveTo(point(0).dx, point(0).dy)
       ..lineTo(point(1).dx, point(1).dy)
@@ -279,11 +276,7 @@ class _CropPainter extends CustomPainter {
         active ? 14 : 10,
         Paint()..color = Colors.white,
       );
-      canvas.drawCircle(
-        point(i),
-        active ? 9 : 6,
-        Paint()..color = accent,
-      );
+      canvas.drawCircle(point(i), active ? 9 : 6, Paint()..color = accent);
     }
   }
 

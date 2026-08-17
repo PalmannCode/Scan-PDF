@@ -29,11 +29,11 @@ CustomTransitionPage<T> _fadeThroughPage<T>(GoRouterState state, Widget child) {
     reverseTransitionDuration: AppMotion.sheet,
     transitionsBuilder: (context, animation, secondaryAnimation, child) =>
         FadeThroughTransition(
-      animation: animation,
-      secondaryAnimation: secondaryAnimation,
-      fillColor: Colors.transparent,
-      child: child,
-    ),
+          animation: animation,
+          secondaryAnimation: secondaryAnimation,
+          fillColor: Colors.transparent,
+          child: child,
+        ),
   );
 }
 
@@ -46,12 +46,14 @@ CustomTransitionPage<T> _slideUpPage<T>(GoRouterState state, Widget child) {
     reverseTransitionDuration: AppMotion.sheet,
     transitionsBuilder: (context, animation, secondaryAnimation, child) =>
         SlideTransition(
-      position: animation.drive(
-        Tween(begin: const Offset(0, 1), end: Offset.zero)
-            .chain(CurveTween(curve: AppMotion.enter)),
-      ),
-      child: child,
-    ),
+          position: animation.drive(
+            Tween(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).chain(CurveTween(curve: AppMotion.enter)),
+          ),
+          child: child,
+        ),
   );
 }
 

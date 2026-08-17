@@ -24,6 +24,9 @@ abstract class DocumentRepository {
     required Uint8List processed,
   });
 
+  /// Removes both page files. Used to roll back an interrupted save.
+  Future<void> deletePageFiles(String pageId);
+
   Future<Uint8List> readOriginal(String pageId);
 
   Future<void> moveToTrash(String id);

@@ -1,4 +1,0 @@
-
-module in_app_review.Swift {
-  header "in_app_review-Swift.h"
-}

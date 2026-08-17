@@ -17,9 +17,9 @@ part 'viewer_actions_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 SignatureStore signatureStore(Ref ref) => SignatureStore(
-      prefs: ref.watch(prefsBoxProvider),
-      resolvePath: ref.watch(resolvePathProvider),
-    );
+  prefs: ref.watch(prefsBoxProvider),
+  resolvePath: ref.watch(resolvePathProvider),
+);
 
 @Riverpod(keepAlive: true)
 ViewerActions viewerActions(Ref ref) => ViewerActions(ref);
@@ -46,7 +46,10 @@ Uint8List _bakeSignatureSync(_SignBakeRequest request) {
   if (page == null || signature == null) {
     throw const FormatException('Could not decode images');
   }
-  final targetW = (page.width * request.widthFraction).round().clamp(24, page.width);
+  final targetW = (page.width * request.widthFraction).round().clamp(
+    24,
+    page.width,
+  );
   final scale = targetW / signature.width;
   final resized = img.copyResize(
     signature,
@@ -72,8 +75,7 @@ class ViewerActions {
   Future<ScanPage> _copyPage(ScanPage page) async {
     final resolve = _ref.read(resolvePathProvider);
     final repo = _ref.read(documentRepositoryProvider);
-    final processed =
-        await File(resolve(page.processedFileName)).readAsBytes();
+    final processed = await File(resolve(page.processedFileName)).readAsBytes();
     Uint8List original;
     try {
       original = await File(resolve(page.originalFileName)).readAsBytes();
@@ -81,32 +83,47 @@ class ViewerActions {
       original = processed;
     }
     final newId = const Uuid().v4();
-    await repo.writePageFiles(
-      pageId: newId,
-      processed: processed,
-      original: original,
-    );
+    try {
+      await repo.writePageFiles(
+        pageId: newId,
+        processed: processed,
+        original: original,
+      );
+    } catch (_) {
+      await repo.deletePageFiles(newId);
+      rethrow;
+    }
     return ScanPage(id: newId, filter: page.filter, ocrText: page.ocrText);
   }
 
   /// Merge Files (Jira §12 Edit): combines two documents into a NEW one.
   Future<ScanDocument> merge(ScanDocument first, ScanDocument second) async {
     final repo = _ref.read(documentRepositoryProvider);
-    final pages = <ScanPage>[
-      for (final page in first.pages) await _copyPage(page),
-      for (final page in second.pages) await _copyPage(page),
-    ];
-    final now = DateTime.now();
-    final merged = ScanDocument(
-      id: const Uuid().v4(),
-      title: 'Merged ${DateFormat('yyyy-MM-dd HH.mm').format(now)}',
-      createdAt: now,
-      modifiedAt: now,
-      pages: pages,
-    );
-    await repo.upsert(merged);
-    _ref.read(documentsProvider.notifier).refresh();
-    return merged;
+    final pages = <ScanPage>[];
+    try {
+      for (final page in first.pages) {
+        pages.add(await _copyPage(page));
+      }
+      for (final page in second.pages) {
+        pages.add(await _copyPage(page));
+      }
+      final now = DateTime.now();
+      final merged = ScanDocument(
+        id: const Uuid().v4(),
+        title: 'Merged ${DateFormat('yyyy-MM-dd HH.mm').format(now)}',
+        createdAt: now,
+        modifiedAt: now,
+        pages: pages,
+      );
+      await repo.upsert(merged);
+      _ref.read(documentsProvider.notifier).refresh();
+      return merged;
+    } catch (_) {
+      for (final page in pages) {
+        await repo.deletePageFiles(page.id);
+      }
+      rethrow;
+    }
   }
 
   /// Bakes a signature into one page image at a normalized position.
@@ -121,8 +138,7 @@ class ViewerActions {
     final repo = _ref.read(documentRepositoryProvider);
     final resolve = _ref.read(resolvePathProvider);
     final page = document.pages[pageIndex];
-    final pageBytes =
-        await File(resolve(page.processedFileName)).readAsBytes();
+    final pageBytes = await File(resolve(page.processedFileName)).readAsBytes();
     final baked = await compute(
       _bakeSignatureSync,
       _SignBakeRequest(

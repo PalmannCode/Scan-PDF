@@ -8,10 +8,9 @@ class OcrService {
   static const MethodChannel _channel = MethodChannel('scanpdf/ocr');
 
   Future<String> recognizeFile(String imagePath) async {
-    final text = await _channel.invokeMethod<String>(
-      'recognizeText',
-      {'path': imagePath},
-    );
+    final text = await _channel.invokeMethod<String>('recognizeText', {
+      'path': imagePath,
+    });
     return text ?? '';
   }
 

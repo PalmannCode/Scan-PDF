@@ -43,15 +43,21 @@ class CameraTopBar extends StatelessWidget {
           PressableTap(
             style: PressStyle.dim,
             onTap: onClose,
-            child: const Icon(Icons.close_rounded,
-                color: Colors.white, semanticLabel: 'Close camera'),
+            child: const Icon(
+              Icons.close_rounded,
+              color: Colors.white,
+              semanticLabel: 'Close camera',
+            ),
           ),
           const Spacer(),
           PressableTap(
             style: PressStyle.dim,
             onTap: onFlash,
-            child: Icon(flashIcon,
-                color: Colors.white, semanticLabel: 'Flash mode'),
+            child: Icon(
+              flashIcon,
+              color: Colors.white,
+              semanticLabel: 'Flash mode',
+            ),
           ),
           if (pageCount > 0) ...[
             const SizedBox(width: AppSpacing.lg),
@@ -171,13 +177,17 @@ class CameraModeBar extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.auto_awesome_rounded,
-                      size: 14,
-                      color: colors.accent,
-                      semanticLabel: 'Filter'),
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 14,
+                    color: colors.accent,
+                    semanticLabel: 'Filter',
+                  ),
                   const SizedBox(width: AppSpacing.xs),
-                  Text(filter.label,
-                      style: AppTypography.caption(Colors.white)),
+                  Text(
+                    filter.label,
+                    style: AppTypography.caption(Colors.white),
+                  ),
                 ],
               ),
             ),
@@ -185,8 +195,7 @@ class CameraModeBar extends StatelessWidget {
           const SizedBox(width: AppSpacing.lg),
           for (final m in CameraMode.values)
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xs),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
               child: PressableTap(
                 style: PressStyle.dim,
                 onTap: () => onMode(m),
@@ -250,10 +259,12 @@ class CameraShutterBar extends StatelessWidget {
           PressableTap(
             style: PressStyle.dim,
             onTap: onGallery,
-            child: const Icon(Icons.photo_library_outlined,
-                color: Colors.white,
-                size: 28,
-                semanticLabel: 'Import from gallery'),
+            child: const Icon(
+              Icons.photo_library_outlined,
+              color: Colors.white,
+              size: 28,
+              semanticLabel: 'Import from gallery',
+            ),
           ),
           PressableTap(
             onTap: capturing ? null : onShutter,

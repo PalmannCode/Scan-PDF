@@ -67,8 +67,7 @@ class FolderScreen extends ConsumerWidget {
           .toList(),
       ref.watch(settingsProvider).sortMode,
     );
-    final viewMode =
-        ref.watch(settingsProvider.select((s) => s.viewMode));
+    final viewMode = ref.watch(settingsProvider.select((s) => s.viewMode));
 
     return Scaffold(
       backgroundColor: colors.shellBg,
@@ -84,10 +83,12 @@ class FolderScreen extends ConsumerWidget {
                     PressableTap(
                       style: PressStyle.dim,
                       onTap: () => context.pop(),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          color: colors.onShell,
-                          size: 20,
-                          semanticLabel: 'Back'),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: colors.onShell,
+                        size: 20,
+                        semanticLabel: 'Back',
+                      ),
                     ),
                     Expanded(
                       child: Text(
@@ -101,9 +102,11 @@ class FolderScreen extends ConsumerWidget {
                     PressableTap(
                       style: PressStyle.dim,
                       onTap: () => _folderMenu(context, ref),
-                      child: Icon(Icons.more_horiz_rounded,
-                          color: colors.onShell,
-                          semanticLabel: 'Folder options'),
+                      child: Icon(
+                        Icons.more_horiz_rounded,
+                        color: colors.onShell,
+                        semanticLabel: 'Folder options',
+                      ),
                     ),
                   ],
                 ),
@@ -138,8 +141,7 @@ class _FolderDocs extends ConsumerWidget {
     if (viewMode == LibraryViewMode.list) {
       return ListView.builder(
         physics: const BouncingScrollPhysics(),
-        padding:
-            const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         itemCount: docs.length,
         itemBuilder: (context, index) {
           final doc = docs[index];

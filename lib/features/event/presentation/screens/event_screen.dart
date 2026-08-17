@@ -79,14 +79,16 @@ class _EventScreenState extends ConsumerState<EventScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              _EventHeader(onBack: () => context.canPop()
-                  ? context.pop()
-                  : context.go('/')),
+              _EventHeader(
+                onBack: () =>
+                    context.canPop() ? context.pop() : context.go('/'),
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xl),
+                    horizontal: AppSpacing.xl,
+                  ),
                   child: Column(
                     children: [
                       const SizedBox(height: AppSpacing.md),
@@ -95,8 +97,7 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                         height: 260,
                         child: ScanPulseFrame(
                           inset: 22,
-                          child:
-                              Center(child: FadingReceipt(width: 140)),
+                          child: Center(child: FadingReceipt(width: 140)),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xl),
@@ -130,12 +131,12 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(
-                                vertical: AppSpacing.lg),
+                              vertical: AppSpacing.lg,
+                            ),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [
-                                colors.accent,
-                                colors.accentDeep,
-                              ]),
+                              gradient: LinearGradient(
+                                colors: [colors.accent, colors.accentDeep],
+                              ),
                               borderRadius: AppShapes.buttonRadius,
                             ),
                             child: Text(
@@ -152,8 +153,7 @@ class _EventScreenState extends ConsumerState<EventScreen> {
                           'starts counting on '
                           '${DateFormat.MMMd().format(AppConstants.eventStart)}.',
                           textAlign: TextAlign.center,
-                          style: AppTypography.caption(
-                              colors.onShellMuted),
+                          style: AppTypography.caption(colors.onShellMuted),
                         ),
                       ],
                       const SizedBox(height: AppSpacing.xxl),
@@ -184,10 +184,12 @@ class _EventHeader extends StatelessWidget {
           PressableTap(
             style: PressStyle.dim,
             onTap: onBack,
-            child: Icon(Icons.arrow_back_ios_new_rounded,
-                color: colors.onShell,
-                size: 20,
-                semanticLabel: 'Back'),
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: colors.onShell,
+              size: 20,
+              semanticLabel: 'Back',
+            ),
           ),
           const Spacer(),
           Container(
@@ -199,10 +201,7 @@ class _EventHeader extends StatelessWidget {
               color: colors.accent.withValues(alpha: 0.16),
               borderRadius: AppShapes.pillRadius,
             ),
-            child: Text(
-              'CHALLENGE',
-              style: AppTypography.label(colors.accent),
-            ),
+            child: Text('CHALLENGE', style: AppTypography.label(colors.accent)),
           ),
         ],
       ),
@@ -242,9 +241,10 @@ class _PhasePanel extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(label,
-              style: AppTypography.title(
-                  done ? colors.success : colors.onShell)),
+          Text(
+            label,
+            style: AppTypography.title(done ? colors.success : colors.onShell),
+          ),
           const SizedBox(height: AppSpacing.sm),
           if (phase != EventPhase.ended)
             Text(
@@ -259,14 +259,12 @@ class _PhasePanel extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('$rescued',
-                    style: AppTypography.monoLarge(colors.accent)),
+                Text('$rescued', style: AppTypography.monoLarge(colors.accent)),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Text(
                     ' / ${AppConstants.eventGoal} rescued',
-                    style: AppTypography.mono(colors.onShellMuted,
-                        size: 13),
+                    style: AppTypography.mono(colors.onShellMuted, size: 13),
                   ),
                 ),
               ],
@@ -278,14 +276,14 @@ class _PhasePanel extends StatelessWidget {
                 height: 6,
                 child: Stack(
                   children: [
-                    Container(
-                        color:
-                            colors.onShell.withValues(alpha: 0.12)),
+                    Container(color: colors.onShell.withValues(alpha: 0.12)),
                     AnimatedFractionallySizedBox(
                       duration: AppMotion.sheet,
                       curve: AppMotion.enter,
-                      widthFactor: (rescued / AppConstants.eventGoal)
-                          .clamp(0.0, 1.0),
+                      widthFactor: (rescued / AppConstants.eventGoal).clamp(
+                        0.0,
+                        1.0,
+                      ),
                       child: Container(color: colors.accent),
                     ),
                   ],

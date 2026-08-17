@@ -17,8 +17,7 @@ class ScanDock extends ConsumerWidget {
   const ScanDock({super.key});
 
   Future<void> _importPhotos(BuildContext context, WidgetRef ref) async {
-    final added =
-        await ref.read(importControllerProvider).importPhotos();
+    final added = await ref.read(importControllerProvider).importPhotos();
     if (added > 0 && context.mounted) context.push('/review');
   }
 
@@ -32,8 +31,7 @@ class ScanDock extends ConsumerWidget {
       ),
       child: Container(
         height: 72,
-        padding:
-            const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         decoration: BoxDecoration(
           color: colors.shellElevated,
           borderRadius: AppShapes.pillRadius,
@@ -89,8 +87,7 @@ class _DockButton extends StatelessWidget {
           children: [
             Icon(icon, color: colors.onShell, size: 24, semanticLabel: label),
             const SizedBox(height: 2),
-            Text(label,
-                style: AppTypography.label(colors.onShellMuted)),
+            Text(label, style: AppTypography.label(colors.onShellMuted)),
           ],
         ),
       ),

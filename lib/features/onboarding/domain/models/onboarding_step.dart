@@ -18,7 +18,6 @@ const onboardingSteps = [
   ),
   OnboardingStep(
     title: 'Export anywhere',
-    subtitle:
-        'Save as PDF, image, text, Word, or PowerPoint whenever you need.',
+    subtitle: 'Save as PDF, JPG, PNG, or recognized text whenever you need.',
   ),
 ];

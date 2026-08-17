@@ -22,8 +22,7 @@ class PageReviewScreen extends ConsumerStatefulWidget {
   const PageReviewScreen({super.key});
 
   @override
-  ConsumerState<PageReviewScreen> createState() =>
-      _PageReviewScreenState();
+  ConsumerState<PageReviewScreen> createState() => _PageReviewScreenState();
 }
 
 class _PageReviewScreenState extends ConsumerState<PageReviewScreen> {
@@ -67,8 +66,12 @@ class _PageReviewScreenState extends ConsumerState<PageReviewScreen> {
     }
     Haptics.destructive();
     ref.read(scanSessionProvider.notifier).removePage(_current);
-    setState(() => _current = _current.clamp(
-        0, ref.read(scanSessionProvider).pages.length - 1));
+    setState(
+      () => _current = _current.clamp(
+        0,
+        ref.read(scanSessionProvider).pages.length - 1,
+      ),
+    );
   }
 
   @override
@@ -88,8 +91,11 @@ class _PageReviewScreenState extends ConsumerState<PageReviewScreen> {
         leading: PressableTap(
           style: PressStyle.dim,
           onTap: _discard,
-          child: Icon(Icons.close_rounded,
-              color: colors.textPrimary, semanticLabel: 'Discard'),
+          child: Icon(
+            Icons.close_rounded,
+            color: colors.textPrimary,
+            semanticLabel: 'Discard',
+          ),
         ),
         title: Text(
           '${safeIndex + 1} / ${session.pages.length}',
@@ -109,8 +115,10 @@ class _PageReviewScreenState extends ConsumerState<PageReviewScreen> {
                   color: colors.accent,
                   borderRadius: AppShapes.pillRadius,
                 ),
-                child: Text('Save',
-                    style: AppTypography.bodyMedium(Colors.white)),
+                child: Text(
+                  'Save',
+                  style: AppTypography.bodyMedium(Colors.white),
+                ),
               ),
             ),
           ),
@@ -122,8 +130,7 @@ class _PageReviewScreenState extends ConsumerState<PageReviewScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                onPageChanged: (index) =>
-                    setState(() => _current = index),
+                onPageChanged: (index) => setState(() => _current = index),
                 itemCount: session.pages.length,
                 itemBuilder: (context, index) {
                   final p = session.pages[index];
@@ -166,11 +173,10 @@ class _PageReviewScreenState extends ConsumerState<PageReviewScreen> {
                   .updatePage(
                     safeIndex,
                     page.copyWith(
-                        rotationQuarters:
-                            (page.rotationQuarters + 1) % 4),
+                      rotationQuarters: (page.rotationQuarters + 1) % 4,
+                    ),
                   ),
-              onFilter: () =>
-                  setState(() => _showFilters = !_showFilters),
+              onFilter: () => setState(() => _showFilters = !_showFilters),
               onDelete: _deleteCurrent,
               onAddPage: () => context.push('/camera'),
             ),
@@ -254,8 +260,12 @@ class _ReviewToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    Widget tool(IconData icon, String label, VoidCallback onTap,
-        {bool destructive = false}) {
+    Widget tool(
+      IconData icon,
+      String label,
+      VoidCallback onTap, {
+      bool destructive = false,
+    }) {
       final color = destructive ? colors.danger : colors.textPrimary;
       return PressableTap(
         onTap: onTap,
@@ -286,8 +296,12 @@ class _ReviewToolbar extends StatelessWidget {
           tool(Icons.rotate_90_degrees_ccw_rounded, 'Rotate', onRotate),
           tool(Icons.auto_awesome_rounded, 'Filter', onFilter),
           tool(Icons.add_a_photo_outlined, 'Add', onAddPage),
-          tool(Icons.delete_outline_rounded, 'Delete', onDelete,
-              destructive: true),
+          tool(
+            Icons.delete_outline_rounded,
+            'Delete',
+            onDelete,
+            destructive: true,
+          ),
         ],
       ),
     );

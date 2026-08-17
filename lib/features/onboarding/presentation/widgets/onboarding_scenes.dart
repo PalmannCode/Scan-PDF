@@ -48,17 +48,19 @@ class EditSceneIllustration extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: 56,
-            child: ExcludeSemantics(
-              child: CustomPaint(
-                size: const Size(110, 40),
-                painter: _SignatureStrokePainter(
-                  color: colors.onShell.withValues(alpha: 0.85),
+                bottom: 56,
+                child: ExcludeSemantics(
+                  child: CustomPaint(
+                    size: const Size(110, 40),
+                    painter: _SignatureStrokePainter(
+                      color: colors.onShell.withValues(alpha: 0.85),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true, period: 4.seconds))
+              )
+              .animate(
+                onPlay: (c) => c.repeat(reverse: true, period: 4.seconds),
+              )
               .fadeIn(duration: 900.ms, curve: AppMotion.enter),
         ],
       ),
@@ -73,7 +75,7 @@ class ExportSceneIllustration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    const formats = ['PDF', 'JPG', 'TXT', 'DOCX'];
+    const formats = ['PDF', 'JPG', 'PNG', 'TXT'];
     return SizedBox(
       width: 240,
       height: 260,
@@ -88,27 +90,30 @@ class ExportSceneIllustration extends StatelessWidget {
               for (var i = 0; i < formats.length; i++)
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xs),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
-                    ),
-                    decoration: BoxDecoration(
-                      color: i == 0
-                          ? colors.accent
-                          : colors.onShell.withValues(alpha: 0.14),
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(AppShapes.chip)),
-                    ),
-                    child: Text(
-                      formats[i],
-                      style: AppTypography.mono(
-                        i == 0 ? Colors.white : colors.onShellMuted,
-                        size: 12,
-                      ),
-                    ),
-                  ).animate().fadeIn(
+                    horizontal: AppSpacing.xs,
+                  ),
+                  child:
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
+                        decoration: BoxDecoration(
+                          color: i == 0
+                              ? colors.accent
+                              : colors.onShell.withValues(alpha: 0.14),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(AppShapes.chip),
+                          ),
+                        ),
+                        child: Text(
+                          formats[i],
+                          style: AppTypography.mono(
+                            i == 0 ? Colors.white : colors.onShellMuted,
+                            size: 12,
+                          ),
+                        ),
+                      ).animate().fadeIn(
                         delay: (120 * i).ms,
                         duration: AppMotion.standard,
                         curve: AppMotion.enter,

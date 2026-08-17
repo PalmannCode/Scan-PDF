@@ -139,8 +139,9 @@ Future<void> showMoveToFolder(
                 confirmLabel: 'Create',
               );
               if (name == null) return;
-              final folder =
-                  await ref.read(foldersProvider.notifier).create(name);
+              final folder = await ref
+                  .read(foldersProvider.notifier)
+                  .create(name);
               await ref
                   .read(documentsProvider.notifier)
                   .moveToFolder(document.id, folder.id);
@@ -187,8 +188,12 @@ class SheetAction extends StatelessWidget {
               child: Text(label, style: AppTypography.bodyMedium(color)),
             ),
             if (selected)
-              Icon(Icons.check_rounded,
-                  color: colors.accent, size: 20, semanticLabel: 'Selected'),
+              Icon(
+                Icons.check_rounded,
+                color: colors.accent,
+                size: 20,
+                semanticLabel: 'Selected',
+              ),
             ?trailing,
           ],
         ),

@@ -33,6 +33,5 @@ class Plus extends _$Plus {
 
   Future<void> restore() => _service?.restore() ?? Future.value();
 
-  Future<void> reloadProduct() =>
-      _service?.loadProduct() ?? Future.value();
+  Future<void> reloadProduct() => _service?.loadProduct() ?? Future.value();
 }

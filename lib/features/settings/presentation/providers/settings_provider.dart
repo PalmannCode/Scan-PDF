@@ -14,8 +14,7 @@ AppStateRepository appStateRepository(Ref ref) =>
 @Riverpod(keepAlive: true)
 class Settings extends _$Settings {
   @override
-  ScanSettings build() =>
-      ref.read(appStateRepositoryProvider).loadSettings();
+  ScanSettings build() => ref.read(appStateRepositoryProvider).loadSettings();
 
   Future<void> update(ScanSettings Function(ScanSettings) transform) async {
     final next = transform(state);
