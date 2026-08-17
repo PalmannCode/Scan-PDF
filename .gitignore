@@ -47,3 +47,14 @@ app.*.map.json
 
 # ASC screenshot assets (uploaded via tooling, not tracked in source)
 /localized-screenshots/
+
+# Local service configuration and secrets
+.env
+.env.*
+!.env.example
+*.p8
+*firebase-adminsdk*.json
+supabase/.temp/
+
+# Deferred Web2App prototype is outside the native-app release scope.
+/web2app/

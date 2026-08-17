@@ -11,6 +11,7 @@ import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/home/presentation/providers/import_provider.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_session_provider.dart';
 import 'package:scanpdf/features/tools/presentation/tools_sheet.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
 /// The floating pill action bar (Jira §10): Tools · Camera · Photos.
 class ScanDock extends ConsumerWidget {
@@ -18,6 +19,9 @@ class ScanDock extends ConsumerWidget {
 
   Future<void> _importPhotos(BuildContext context, WidgetRef ref) async {
     final added = await ref.read(importControllerProvider).importPhotos();
+    await ref
+        .read(analyticsServiceProvider)
+        .track('gallery_button_clicked', properties: {'selected_pages': added});
     if (added > 0 && context.mounted) context.push('/review');
   }
 
@@ -42,7 +46,10 @@ class ScanDock extends ConsumerWidget {
             _DockButton(
               icon: Icons.grid_view_rounded,
               label: 'Tools',
-              onTap: () => ToolsSheet.show(context),
+              onTap: () {
+                ref.read(analyticsServiceProvider).track('tools_opened');
+                ToolsSheet.show(context);
+              },
             ),
             _CameraButton(
               onTap: () {

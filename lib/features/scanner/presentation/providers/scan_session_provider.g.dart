@@ -42,7 +42,7 @@ final class ScanSessionNotifierProvider
 }
 
 String _$scanSessionNotifierHash() =>
-    r'5031633a34a023997dee391bc04ab5a67b398ba7';
+    r'fbf5316065451c8b3434030268714c680d0d9514';
 
 abstract class _$ScanSessionNotifier extends $Notifier<ScanSession> {
   ScanSession build();

@@ -14,6 +14,7 @@ import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/home/presentation/providers/folders_provider.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_saver_provider.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_session_provider.dart';
+import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
 
 /// Save flow (Jira §15): document name + destination folder. Documents
 /// are stored page-based and PDF-ready; export formats live in the
@@ -34,13 +35,24 @@ class _SaveSheetBody extends ConsumerStatefulWidget {
 }
 
 class _SaveSheetBodyState extends ConsumerState<_SaveSheetBody> {
-  late final TextEditingController _nameController = TextEditingController(
-    text: 'Scan ${DateFormat('yyyy-MM-dd HH.mm').format(DateTime.now())}',
-  );
+  late final TextEditingController _nameController;
   String? _folderId;
   bool _saving = false;
   int _done = 0;
   int _total = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final pattern = ref.read(settingsProvider).defaultFileNameFormat;
+    String name;
+    try {
+      name = DateFormat(pattern).format(DateTime.now());
+    } catch (_) {
+      name = 'Scan ${DateFormat('yyyy-MM-dd HH.mm').format(DateTime.now())}';
+    }
+    _nameController = TextEditingController(text: name);
+  }
 
   @override
   void dispose() {

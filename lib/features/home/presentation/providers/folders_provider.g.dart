@@ -87,7 +87,7 @@ final class FoldersProvider
   }
 }
 
-String _$foldersHash() => r'd6cc6f5acdca3c62456592fc45f81e1acf3027a2';
+String _$foldersHash() => r'7ac9db0762e9d1ab685cccb9357e2b626dd48827';
 
 abstract class _$Folders extends $Notifier<List<ScanFolder>> {
   List<ScanFolder> build();

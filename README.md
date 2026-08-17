@@ -1,135 +1,145 @@
 # Scan PDF: Genius Expert Editor
 
-Production Flutter source for the local-first iPhone scanner specified in the
-VictoryASO Jira project (`SUBAPPS-122`, development ticket `SUBAPPS-129`). The
-app captures and imports pages, corrects perspective, applies scan filters,
-runs on-device text recognition, organizes documents, signs and merges pages,
-and exports PDF, image, text, and print output.
+Production Flutter source for VictoryASO Jira parent `SUBAPPS-122` and
+Development ticket `SUBAPPS-129`, including the MVP, V2, AI, Supabase,
+Receipt Rescue, and icon requirements. The separate Web2App checkout is
+deferred and is not part of the current native-app release scope.
 
-## Product boundaries
+The product is local-first: guests can scan, edit, organize, search, and export
+without an account or network connection. Signing in with Apple or a
+passwordless email link enables optional Supabase backup, cross-install restore,
+server-validated entitlement state, AI tools, priority support, expense reports,
+and saved automation settings.
 
-- Documents, page images, folders, OCR text, event progress, preferences, and
-  Plus entitlement state are stored on the device.
-- Version 1 has no account, authentication, analytics SDK, cloud sync,
-  Supabase, or document backend.
-- Network access is limited to user-initiated App Store purchase and restore
-  actions and external support, legal, review, and subscription-management
-  links.
-- OCR uses Apple's Vision framework through the iOS platform channel.
-- The iOS target is iPhone-only and portrait-only.
-
-## Release configuration
+## Release identity
 
 | Item | Value |
 | --- | --- |
-| Version | `1.0.0+1` |
+| Flutter version | `1.0.0+1` |
 | Bundle ID | `com.futurafund.scanpdf` |
 | App Store ID | `6792221523` |
 | Minimum iOS | 15.5 |
-| Subscription | `plus_pdf_monthly` |
-| Subscription offer | 3-day introductory trial, then $3.99/month |
-| Game Center | Entitlement enabled; no v1 leaderboards or achievements |
-| Event deep link | `scanpdf://receipt-rescue` |
+| Subscription product | `plus_pdf_monthly` |
+| Subscription offer | 3-day trial, then $3.99/month |
+| Event link | `scanpdf://receipt-rescue` |
 | Event window | 2026-08-17 through 2026-09-17 23:59 |
 | Event goal | 15 receipts |
 
-The StoreKit product, its monthly duration, $3.99 price, and 3-day introductory
-offer must match this table in App Store Connect before release. The app reads
-the localized live price from StoreKit and uses `$3.99` only as fallback copy.
+StoreKit supplies the localized live price. `$3.99/month` is fallback display
+copy and must match App Store Connect before submission.
 
-## Local development
+## Implemented product surface
 
-Prerequisites:
+- Document, Text, Book, QR, Translate, Measure, and Count camera modes
+- Apple Vision document detection, perspective correction, auto-capture, OCR,
+  and QR decoding; page split and cleanup for book spreads
+- Batch review, crop, rotate, filters, add/reorder/delete pages, folders, trash,
+  OCR search, and local offline storage
+- PDF/JPG/PNG/TXT/Word/PowerPoint export, AirPrint, searchable PDFs,
+  compression, extraction, text/image watermarks, and PDF password protection
+- Drawn, imported, reusable, default, and cloud-backed signatures
+- Apple and passwordless-email authentication through Supabase PKCE
+- Optional cloud backup/restore, auto upload, settings/workflow/signature sync,
+  RLS-protected metadata, and private Storage buckets
+- Ask AI, summaries, structured extraction, translation, object count, and
+  editable PDF/CSV expense reports through authenticated Edge Functions
+- Direct App Store IAP through StoreKit and App Store Connect; Stripe is not a
+  dependency of the native application
+- Priority support, workflow templates, alternate app icons, Amplitude events,
+  Receipt Rescue, Game Center capability, and Codemagic iOS release automation
 
-- Flutter and Dart versions compatible with `pubspec.yaml`
-- Xcode with an iOS 15.5 or newer SDK
-- CocoaPods
-- A physical iPhone for camera and StoreKit sandbox validation
+## Local setup
 
-Install and generate code:
+Prerequisites: Flutter, Xcode, CocoaPods, and Deno. A physical iPhone is required
+for final camera, StoreKit, Sign in with Apple, alternate-icon, and share/print
+acceptance tests.
 
 ```sh
 flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-cd ios
-pod install
-cd ..
+dart run build_runner build
+cd ios && pod install && cd ..
 ```
 
-Run local checks:
+Supply public client configuration with Dart defines:
+
+```sh
+flutter run \
+  --dart-define=SUPABASE_URL=https://PROJECT.supabase.co \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
+  --dart-define=AMPLITUDE_API_KEY=...
+```
+
+The same variables belong in Codemagic group `scanpdf_public_config`. They are
+public client identifiers, not administrative secrets. Copy `.env.example` for
+the full server-secret checklist. Never put a Supabase service-role key,
+OpenAI key or App Store private key in Flutter, Git, or chat.
+
+## Supabase
+
+The schema, RLS policies, private buckets, and auth-profile trigger live in:
+
+```text
+supabase/migrations/202608170001_scan_pdf_schema.sql
+```
+
+The two migrations are already applied to project
+`iyxksejttlhtcqwhpuvl`. Deploy the functions with the Supabase CLI after the
+CLI identity has project-management access, then set server-only secrets in
+Supabase's secret store. Required functions are:
+
+- `ai_document_assistant`
+- `translate_document`
+- `validate_entitlement`
+- `delete_account`
+
+For Apple authentication, enable the Apple provider in Supabase and allow
+`scanpdf://auth-callback`. The live project currently has email enabled and
+Apple disabled; the local CLI identity receives a 403 from the project's
+management endpoints, so this requires Developer/Owner project access. Email
+magic links use the same callback. Keep the native bundle identifier aligned
+with the Apple service configuration.
+
+## CI
+
+The existing `web2app/` prototype and its Stripe Edge Functions are parked for
+a later phase. They do not need to be deployed or configured for this native
+release. Native purchases use the App Store product `plus_pdf_monthly`.
+
+`codemagic.yaml` contains one `ios-release` workflow. Configure:
+
+- Codemagic App Store Connect integration group `appstore_credentials`
+- public group `scanpdf_public_config`
+- an App Store distribution certificate and provisioning profile for
+  `com.futurafund.scanpdf`
+
+The non-secret App Store Connect issuer ID and key ID from Jira Setup are
+already present in `codemagic.yaml`. Add only the contents of Jira attachment
+`AuthKey_849GKT37AM.p8` as the encrypted
+`APP_STORE_CONNECT_PRIVATE_KEY` value in Codemagic. The separate
+`AuthKey_DP3Q5WL46F.p8` file is for APNs and must not be used for App Store
+Connect publishing or StoreKit validation.
+
+The workflow resolves packages, installs Pods, generates source, analyzes,
+tests, builds a signed IPA with the next App Store build number, and uploads it
+to App Store Connect without automatically submitting it for review.
+
+## Verification
+
+Local gates:
 
 ```sh
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 flutter test
+deno check supabase/functions/*/index.ts
+plutil -lint ios/Runner/Info.plist ios/Runner/Runner.entitlements
+flutter build ios --simulator --debug
 flutter build ios --release --no-codesign
 ```
 
-The repository ignores build output at every directory depth. Generated Xcode
-DerivedData and Flutter build products must not be committed.
-
-## Architecture and storage
-
-The app uses feature-first Flutter code with Riverpod state management and
-GoRouter navigation:
-
-- `lib/features/scanner`: camera, crop, review, filters, and atomic save flow
-- `lib/features/home`: local document/folder repositories and library UI
-- `lib/features/viewer`: export, OCR text, signing, merging, and page actions
-- `lib/features/paywall`: direct App Store subscription and restore flow
-- `lib/features/event`: Receipt Rescue deep link, window, and local progress
-- `lib/features/settings`: scanning preferences, support, legal, and subscription
-- `lib/services`: image processing, PDF, OCR bridge, purchases, and exports
-
-Hive stores metadata; processed and original page images live in the app's
-documents directory. A failed multi-page save rolls back files created during
-that attempt. A damaged Hive entry is skipped so one malformed record cannot
-prevent the rest of the library from opening.
-
-The Archivo and IBM Plex Mono font files are bundled under `assets/fonts`, so
-the design typography does not require a runtime font download. Their OFL
-license files are bundled and registered with Flutter's license registry.
-
-## App Store assets and metadata
-
-- `asc_metadata.json`: en-US App Store metadata and review notes
-- `DESIGN_BRIEF.md`: approved visual system and product behavior
-- `localized-screenshots/en-US/`: generated 1320×2868 simulator screenshots
-  (ignored by Git because release tooling owns screenshot upload)
-- `assets/icon.png`: launcher and splash source art
-
-The Jira signing-key and Firebase attachments are private release inputs and are
-not stored in this repository. Do not commit `.p8` keys, API keys, provisioning
-profiles, or App Store Connect credentials.
-
-Before metadata submission, fill the reviewer first name, last name, phone, and
-email plus the legal company name/copyright in `asc_metadata.json`. The current
-`null` contact fields are intentionally left as a release gate rather than
-inventing identity data.
-
-## Physical-device acceptance checklist
-
-- Deny camera access, verify the recovery screen, grant access in Settings, and
-  retry successfully.
-- Capture single and batch scans; crop, rotate, filter, reorder, add, and remove
-  pages; interrupt one save and confirm no partial document remains.
-- Import photos, images, and a multi-page PDF from Files.
-- Confirm Vision OCR text appears in search and TXT export while offline.
-- Draw a signature, verify transparent placement, pinch/drag it, and confirm the
-  saved page does not receive an opaque signature background.
-- Export PDF, JPG, PNG, and TXT; share and print to an available AirPrint target.
-- Move documents to Trash, restore them, delete permanently, and empty Trash.
-- Open `scanpdf://receipt-rescue`, verify the event screen, and confirm eligible
-  live-window scans count only once toward the 15-receipt goal.
-- With a Sandbox Apple ID, load `plus_pdf_monthly`, start the 3-day trial at the
-  localized $3.99/month renewal price, cancel, restore, and verify both Restore
-  Purchases entry points.
-- Confirm App Store Connect has Game Center enabled for version 1.0.0 and that
-  the binary includes the Game Center entitlement.
-- Install with networking disabled and verify the bundled typography renders on
-  onboarding, home, scanner, viewer, settings, paywall, and event screens.
-
-Passing analyzer, unit tests, and a no-codesign release build establishes local
-readiness only. StoreKit sandbox behavior, camera quality, OCR results, print and
-share destinations, Game Center/App Store Connect state, and event publishing
-still require account-backed or physical-device verification.
+These establish local code/build readiness, not deployed-service or App Store
+proof. Before submission, complete the live checklist in
+`JIRA_IMPLEMENTATION_AUDIT.md`, especially Supabase auth/RLS, AI consent,
+App Store Server validation, StoreKit sandbox purchase and restore, Amplitude
+receipt, event publishing, Game Center/App Store capability state, and a signed
+TestFlight install.

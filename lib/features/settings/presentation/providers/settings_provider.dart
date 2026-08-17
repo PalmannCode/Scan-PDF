@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:scanpdf/features/settings/data/app_state_repository.dart';
 import 'package:scanpdf/shared/models/scan_settings.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
 part 'settings_provider.g.dart';
 
@@ -20,6 +21,7 @@ class Settings extends _$Settings {
     final next = transform(state);
     state = next;
     await ref.read(appStateRepositoryProvider).saveSettings(next);
+    await ref.read(analyticsServiceProvider).track('setting_changed');
   }
 }
 

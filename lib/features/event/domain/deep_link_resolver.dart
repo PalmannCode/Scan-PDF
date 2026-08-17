@@ -7,5 +7,8 @@ String resolveDeepLink(Uri uri) {
       uri.host == AppConstants.eventHost) {
     return '/event';
   }
+  if (uri.scheme == AppConstants.eventScheme && uri.host == 'auth-callback') {
+    return '/account';
+  }
   return '/';
 }

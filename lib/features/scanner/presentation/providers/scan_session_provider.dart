@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:scanpdf/features/scanner/domain/models/captured_page.dart';
 import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
 import 'package:scanpdf/shared/models/enums.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
 part 'scan_session_provider.g.dart';
 
@@ -17,17 +18,55 @@ class ScanSessionNotifier extends _$ScanSessionNotifier {
       mode: mode ?? settings.defaultCameraMode,
       fromEvent: fromEvent,
     );
+    Future<void>.microtask(
+      () => ref
+          .read(analyticsServiceProvider)
+          .track(
+            'camera_opened',
+            properties: {
+              'screen_name': 'camera',
+              'source': fromEvent ? 'receipt_rescue' : 'app',
+              'tool_name': state.mode.name,
+            },
+          ),
+    );
   }
 
-  void setMode(CameraMode mode) => state = state.copyWith(mode: mode);
+  void setMode(CameraMode mode) {
+    state = state.copyWith(mode: mode);
+    Future<void>.microtask(
+      () => ref
+          .read(analyticsServiceProvider)
+          .track(
+            'camera_mode_selected',
+            properties: {'tool_name': mode.name, 'screen_name': 'camera'},
+          ),
+    );
+  }
 
-  void addCapture(String tempPath) {
+  void addCapture(String tempPath, {List<double>? corners}) {
     final settings = ref.read(settingsProvider);
     state = state.copyWith(
       pages: [
         ...state.pages,
-        CapturedPage(tempPath: tempPath, filter: settings.defaultFilter),
+        CapturedPage(
+          tempPath: tempPath,
+          filter: settings.defaultFilter,
+          corners: corners,
+        ),
       ],
+    );
+    Future<void>.microtask(
+      () => ref
+          .read(analyticsServiceProvider)
+          .track(
+            'scan_captured',
+            properties: {
+              'tool_name': state.mode.name,
+              'page_count': state.pages.length,
+              'edge_detected': corners != null,
+            },
+          ),
     );
   }
 

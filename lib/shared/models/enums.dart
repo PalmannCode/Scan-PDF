@@ -9,11 +9,19 @@ enum ScanFilter {
 
   const ScanFilter(this.label);
   final String label;
+
+  bool get isPlus =>
+      this == ScanFilter.lighten || this == ScanFilter.highContrast;
 }
 
-/// Camera modes shipped in v1.0 (Document default, Text = OCR-focused).
+/// Camera modes from the complete MVP + V2 Jira scope.
 enum CameraMode {
+  count('Count'),
+  measure('Measure'),
+  qrCode('QR Code'),
   document('Document'),
+  book('Book'),
+  translate('Translate'),
   text('Text');
 
   const CameraMode(this.label);

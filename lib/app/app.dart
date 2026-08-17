@@ -50,6 +50,10 @@ class _ScanPdfAppState extends ConsumerState<ScanPdfApp> {
 
   void _openLink(Uri uri) {
     final route = resolveDeepLink(uri);
+    if (uri.scheme == AppConstants.eventScheme &&
+        uri.host == 'subscription-success') {
+      ref.read(plusProvider.notifier).refreshEntitlement();
+    }
     if (kDebugMode) {
       debugPrint('deep link received: $uri -> $route');
     }

@@ -88,7 +88,7 @@ final class SettingsProvider extends $NotifierProvider<Settings, ScanSettings> {
   }
 }
 
-String _$settingsHash() => r'81407dcc148bff982db4bbe00ef72828be4ac191';
+String _$settingsHash() => r'6083e59f00e57a8121d8b5004038946645cc92ed';
 
 abstract class _$Settings extends $Notifier<ScanSettings> {
   ScanSettings build();

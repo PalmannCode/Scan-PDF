@@ -16,6 +16,7 @@ import 'package:scanpdf/features/home/presentation/providers/folders_provider.da
 import 'package:scanpdf/features/home/presentation/widgets/document_actions.dart';
 import 'package:scanpdf/features/home/presentation/widgets/document_tile.dart';
 import 'package:scanpdf/shared/models/scan_document.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
 /// Search by title, folder name, and recognized OCR text (Jira §9).
 class SearchScreen extends ConsumerStatefulWidget {
@@ -28,6 +29,16 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _controller = TextEditingController();
   String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(
+      () => ref
+          .read(analyticsServiceProvider)
+          .track('search_opened', properties: {'screen_name': 'search'}),
+    );
+  }
 
   @override
   void dispose() {
@@ -104,6 +115,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 ),
                                 onChanged: (value) =>
                                     setState(() => _query = value),
+                                onSubmitted: (value) => ref
+                                    .read(analyticsServiceProvider)
+                                    .track(
+                                      'search_query_entered',
+                                      properties: {
+                                        'query_length': value.trim().length,
+                                        'result_count': results.length,
+                                        'screen_name': 'search',
+                                      },
+                                    ),
                               ),
                             ),
                           ],

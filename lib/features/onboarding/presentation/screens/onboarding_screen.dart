@@ -16,6 +16,7 @@ import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/onboarding/domain/models/onboarding_step.dart';
 import 'package:scanpdf/features/onboarding/presentation/widgets/onboarding_scenes.dart';
 import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -29,12 +30,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _page = 0;
 
   @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(() async {
+      final analytics = ref.read(analyticsServiceProvider);
+      await analytics.track(
+        'onboarding_started',
+        properties: {'screen_name': 'onboarding'},
+      );
+      await analytics.track(
+        'onboarding_screen_viewed',
+        properties: {'screen_index': 0, 'screen_name': 'onboarding'},
+      );
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _finish() async {
+  Future<void> _finish({bool skipped = false}) async {
+    await ref
+        .read(analyticsServiceProvider)
+        .track(
+          skipped ? 'onboarding_skipped' : 'onboarding_completed',
+          properties: {'screen_index': _page, 'screen_name': 'onboarding'},
+        );
     await ref.read(appStateRepositoryProvider).completeOnboarding();
     if (!mounted) return;
     context.go('/');
@@ -65,7 +88,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: PressableTap(
                     style: PressStyle.dim,
-                    onTap: _finish,
+                    onTap: () => _finish(skipped: true),
                     child: Padding(
                       padding: const EdgeInsets.all(AppSpacing.sm),
                       child: Text(
@@ -83,6 +106,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   onPageChanged: (index) {
                     Haptics.selection();
                     setState(() => _page = index);
+                    ref
+                        .read(analyticsServiceProvider)
+                        .track(
+                          'onboarding_screen_viewed',
+                          properties: {
+                            'screen_index': index,
+                            'screen_name': 'onboarding',
+                          },
+                        );
                   },
                   itemBuilder: (context, index) => _OnboardingPage(
                     step: onboardingSteps[index],

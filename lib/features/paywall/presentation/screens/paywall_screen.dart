@@ -14,15 +14,31 @@ import 'package:scanpdf/core/widgets/app_background.dart';
 import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/paywall/presentation/providers/plus_provider.dart';
 import 'package:scanpdf/services/purchase_service.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
 /// Plus paywall (Jira §7): direct App Store subscription, soft gate.
-/// The app is fully usable without it — Plus adds reusable saved
-/// signatures and priority support.
-class PaywallScreen extends ConsumerWidget {
+/// Core local scanning remains usable without it; advanced cloud, AI,
+/// conversion, automation, and support tools are gated.
+class PaywallScreen extends ConsumerStatefulWidget {
   const PaywallScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PaywallScreen> createState() => _PaywallScreenState();
+}
+
+class _PaywallScreenState extends ConsumerState<PaywallScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(
+      () => ref
+          .read(analyticsServiceProvider)
+          .track('paywall_viewed', properties: {'screen_name': 'paywall'}),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
     final plus = ref.watch(plusProvider);
 
@@ -86,7 +102,7 @@ class _PlusActiveBody extends StatelessWidget {
         Text('Plus is active', style: AppTypography.display(colors.onShell)),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Saved signatures and priority support are unlocked. Manage the subscription in your App Store account settings.',
+          'AI, cloud backup, advanced conversion, workflows, reusable signatures, expense reports, and priority support are unlocked.',
           textAlign: TextAlign.center,
           style: AppTypography.body(colors.onShellMuted),
         ),
@@ -129,21 +145,22 @@ class _PlusOfferBody extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         const _Benefit(
-          icon: Icons.bookmark_added_outlined,
-          title: 'Reusable saved signatures',
+          icon: Icons.auto_awesome_rounded,
+          title: 'Advanced document tools',
           subtitle:
-              'Save your signature once, place it on any document in seconds.',
+              'Word and PowerPoint, Book Scan, translation, compression, watermarks, and workflows.',
         ),
         const _Benefit(
-          icon: Icons.support_agent_rounded,
-          title: 'Priority support',
-          subtitle: 'Your requests jump to the front of the queue.',
+          icon: Icons.cloud_upload_outlined,
+          title: 'Cloud productivity',
+          subtitle:
+              'Auto Upload, reusable signatures, expense reports, and priority support.',
         ),
         const _Benefit(
-          icon: Icons.favorite_outline_rounded,
-          title: 'Support development',
+          icon: Icons.psychology_outlined,
+          title: 'More AI and OCR',
           subtitle:
-              'Help fund new scanning and editing tools in future updates.',
+              'Expanded document Q&A, extraction, translation, and recognition limits.',
         ),
         const SizedBox(height: AppSpacing.xl),
         Container(
@@ -226,8 +243,8 @@ class _PlusOfferBody extends ConsumerWidget {
           'Auto-renewable monthly subscription. Payment is charged to your '
           'Apple ID at confirmation. Renews automatically unless cancelled '
           'at least 24 hours before the end of the period. Manage or cancel '
-          'any time in App Store settings. The app stays fully usable '
-          'without Plus.',
+          'any time in App Store settings. Core local scanning and PDF '
+          'sharing remain available without Plus.',
           textAlign: TextAlign.center,
           style: AppTypography.caption(
             colors.onShellMuted.withValues(alpha: 0.8),

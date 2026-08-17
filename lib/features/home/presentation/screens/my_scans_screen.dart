@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:scanpdf/app/theme/app_shapes.dart';
 import 'package:scanpdf/app/theme/app_spacing.dart';
 import 'package:scanpdf/app/theme/app_typography.dart';
-import 'package:scanpdf/core/constants/url_constants.dart';
 import 'package:scanpdf/core/extensions/context_extensions.dart';
 import 'package:scanpdf/core/utils/responsive.dart';
 import 'package:scanpdf/core/widgets/adaptive_dialog.dart';
@@ -29,12 +27,28 @@ import 'package:scanpdf/features/settings/presentation/providers/settings_provid
 import 'package:scanpdf/shared/models/enums.dart';
 import 'package:scanpdf/shared/models/scan_document.dart';
 import 'package:scanpdf/shared/models/scan_folder.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
-class MyScansScreen extends ConsumerWidget {
+class MyScansScreen extends ConsumerStatefulWidget {
   const MyScansScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyScansScreen> createState() => _MyScansScreenState();
+}
+
+class _MyScansScreenState extends ConsumerState<MyScansScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(
+      () => ref
+          .read(analyticsServiceProvider)
+          .track('my_scans_viewed', properties: {'screen_name': 'my_scans'}),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.colors;
     final documents = ref.watch(activeDocumentsProvider);
     final folders = ref.watch(foldersProvider);
@@ -189,18 +203,19 @@ class _MoreMenu extends ConsumerWidget {
                 .update((s) => s.copyWith(sortMode: mode)),
           ),
         const Divider(),
-        item(
-          'Priority Support',
-          onPressed: () => launchUrl(
-            Uri.parse(UrlConstants.support),
-            mode: LaunchMode.externalApplication,
-          ),
-        ),
+        item('Priority Support', onPressed: () => context.push('/support')),
         item('Trash Bin', onPressed: () => context.push('/trash')),
       ],
       builder: (context, controller, _) => PressableTap(
         style: PressStyle.dim,
-        onTap: () => controller.isOpen ? controller.close() : controller.open(),
+        onTap: () {
+          if (controller.isOpen) {
+            controller.close();
+          } else {
+            ref.read(analyticsServiceProvider).track('more_menu_opened');
+            controller.open();
+          }
+        },
         child: Icon(
           Icons.more_horiz_rounded,
           color: colors.onShell,

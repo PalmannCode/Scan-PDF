@@ -7,17 +7,19 @@ import 'package:scanpdf/app/theme/app_spacing.dart';
 import 'package:scanpdf/app/theme/app_typography.dart';
 import 'package:scanpdf/core/extensions/context_extensions.dart';
 import 'package:scanpdf/core/widgets/app_bottom_sheet.dart';
+import 'package:scanpdf/core/widgets/adaptive_dialog.dart';
 import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/home/presentation/providers/documents_provider.dart';
 import 'package:scanpdf/features/home/presentation/providers/import_provider.dart';
+import 'package:scanpdf/features/home/presentation/providers/folders_provider.dart';
 import 'package:scanpdf/features/home/presentation/widgets/document_tile.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_session_provider.dart';
 import 'package:scanpdf/shared/models/enums.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
 import 'package:scanpdf/shared/models/scan_document.dart';
+import 'package:scanpdf/features/paywall/presentation/providers/plus_provider.dart';
 
-/// The Tools bottom sheet (Jira §12) — every tool listed actually works;
-/// V2-only tools are not shown at all.
+/// The Tools bottom sheet (Jira §12), including the complete V2 tool set.
 abstract class ToolsSheet {
   static Future<void> show(BuildContext context) {
     return AppBottomSheet.show<void>(
@@ -100,6 +102,80 @@ class _ToolsBody extends ConsumerWidget {
               context.push('/camera');
             }),
           ),
+          _Tool(
+            icon: Icons.menu_book_outlined,
+            label: 'Book',
+            badge: 'PLUS',
+            onTap: () {
+              if (!ref.read(plusProvider).isActive) {
+                _closeThen(context, () => context.push('/paywall'));
+                return;
+              }
+              _closeThen(context, () {
+                ref
+                    .read(scanSessionProvider.notifier)
+                    .start(mode: CameraMode.book);
+                context.push('/camera');
+              });
+            },
+          ),
+          _Tool(
+            icon: Icons.qr_code_scanner_rounded,
+            label: 'QR Code',
+            onTap: () => _closeThen(context, () {
+              ref
+                  .read(scanSessionProvider.notifier)
+                  .start(mode: CameraMode.qrCode);
+              context.push('/camera');
+            }),
+          ),
+          _Tool(
+            icon: Icons.translate_rounded,
+            label: 'Translate',
+            badge: 'PLUS',
+            onTap: () {
+              if (!ref.read(plusProvider).isActive) {
+                _closeThen(context, () => context.push('/paywall'));
+                return;
+              }
+              _closeThen(context, () {
+                ref
+                    .read(scanSessionProvider.notifier)
+                    .start(mode: CameraMode.translate);
+                context.push('/camera');
+              });
+            },
+          ),
+        ]),
+        ...section('CREATE', [
+          _Tool(
+            icon: Icons.create_new_folder_outlined,
+            label: 'Folder',
+            onTap: () async {
+              Navigator.of(context).pop();
+              final name = await AdaptiveDialog.prompt(
+                context,
+                title: 'New folder',
+                placeholder: 'Folder name',
+                confirmLabel: 'Create',
+              );
+              if (name != null && name.trim().isNotEmpty) {
+                await ref.read(foldersProvider.notifier).create(name.trim());
+              }
+            },
+          ),
+          _Tool(
+            icon: Icons.receipt_long_outlined,
+            label: 'Expenses',
+            badge: 'PLUS',
+            onTap: () {
+              if (!ref.read(plusProvider).isActive) {
+                _closeThen(context, () => context.push('/paywall'));
+                return;
+              }
+              _closeThen(context, () => context.push('/expense-report'));
+            },
+          ),
         ]),
         ...section('IMPORT', [
           _Tool(
@@ -157,6 +233,35 @@ class _ToolsBody extends ConsumerWidget {
               }
             }),
           ),
+          _Tool(
+            icon: Icons.description_outlined,
+            label: 'To Word',
+            badge: 'PLUS',
+            onTap: () {
+              if (!ref.read(plusProvider).isActive) {
+                _closeThen(context, () => context.push('/paywall'));
+                return;
+              }
+              _withDocument(context, ref, 'Export to Word', export.shareWord);
+            },
+          ),
+          _Tool(
+            icon: Icons.slideshow_outlined,
+            label: 'To PPT',
+            badge: 'PLUS',
+            onTap: () {
+              if (!ref.read(plusProvider).isActive) {
+                _closeThen(context, () => context.push('/paywall'));
+                return;
+              }
+              _withDocument(
+                context,
+                ref,
+                'Export to PowerPoint',
+                export.sharePowerPoint,
+              );
+            },
+          ),
         ]),
         ...section('EDIT', [
           _Tool(
@@ -179,6 +284,53 @@ class _ToolsBody extends ConsumerWidget {
                   }
                 }),
           ),
+          _Tool(
+            icon: Icons.content_cut_rounded,
+            label: 'Extract',
+            onTap: () =>
+                _withDocument(context, ref, 'Extract pages from…', (doc) async {
+                  if (context.mounted) {
+                    context.push('/document/${doc.id}/tools');
+                  }
+                }),
+          ),
+          _Tool(
+            icon: Icons.reorder_rounded,
+            label: 'Reorder',
+            onTap: () =>
+                _withDocument(context, ref, 'Reorder pages in…', (doc) async {
+                  if (context.mounted) {
+                    context.push('/document/${doc.id}/pages');
+                  }
+                }),
+          ),
+          _Tool(
+            icon: Icons.compress_rounded,
+            label: 'Compress',
+            onTap: () => _withDocument(context, ref, 'Compress…', (doc) async {
+              if (context.mounted) {
+                context.push('/document/${doc.id}/tools');
+              }
+            }),
+          ),
+          _Tool(
+            icon: Icons.branding_watermark_outlined,
+            label: 'Watermark',
+            onTap: () => _withDocument(context, ref, 'Watermark…', (doc) async {
+              if (context.mounted) {
+                context.push('/document/${doc.id}/tools');
+              }
+            }),
+          ),
+          _Tool(
+            icon: Icons.lock_outline_rounded,
+            label: 'Lock PDF',
+            onTap: () => _withDocument(context, ref, 'Lock…', (doc) async {
+              if (context.mounted) {
+                context.push('/document/${doc.id}/tools');
+              }
+            }),
+          ),
         ]),
         ...section('UTILITIES', [
           _Tool(
@@ -190,6 +342,63 @@ class _ToolsBody extends ConsumerWidget {
               'Print a document',
               export.printDocument,
             ),
+          ),
+          _Tool(
+            icon: Icons.straighten_rounded,
+            label: 'Measure',
+            onTap: () => _closeThen(context, () {
+              ref
+                  .read(scanSessionProvider.notifier)
+                  .start(mode: CameraMode.measure);
+              context.push('/camera');
+            }),
+          ),
+          _Tool(
+            icon: Icons.calculate_outlined,
+            label: 'Count',
+            onTap: () => _closeThen(context, () {
+              ref
+                  .read(scanSessionProvider.notifier)
+                  .start(mode: CameraMode.count);
+              context.push('/camera');
+            }),
+          ),
+          _Tool(
+            icon: Icons.route_rounded,
+            label: 'Workflows',
+            badge: 'PLUS',
+            onTap: () {
+              if (!ref.read(plusProvider).isActive) {
+                _closeThen(context, () => context.push('/paywall'));
+                return;
+              }
+              _closeThen(context, () => context.push('/settings/workflows'));
+            },
+          ),
+        ]),
+        ...section('AI', [
+          _Tool(
+            icon: Icons.question_answer_outlined,
+            label: 'Ask AI',
+            onTap: () =>
+                _withDocument(context, ref, 'Ask AI about…', (doc) async {
+                  if (context.mounted) context.push('/document/${doc.id}/ai');
+                }),
+          ),
+          _Tool(
+            icon: Icons.summarize_outlined,
+            label: 'AI Summary',
+            onTap: () => _withDocument(context, ref, 'Summarize…', (doc) async {
+              if (context.mounted) context.push('/document/${doc.id}/ai');
+            }),
+          ),
+          _Tool(
+            icon: Icons.data_object_rounded,
+            label: 'AI Extract',
+            onTap: () =>
+                _withDocument(context, ref, 'Extract from…', (doc) async {
+                  if (context.mounted) context.push('/document/${doc.id}/ai');
+                }),
           ),
         ]),
         const SizedBox(height: AppSpacing.xxl),
@@ -236,11 +445,17 @@ Future<ScanDocument?> pickDocument(
 }
 
 class _Tool {
-  const _Tool({required this.icon, required this.label, required this.onTap});
+  const _Tool({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.badge,
+  });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final String? badge;
 }
 
 class _ToolCard extends StatelessWidget {
@@ -265,11 +480,25 @@ class _ToolCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              tool.icon,
-              color: colors.textPrimary,
-              size: 24,
-              semanticLabel: tool.label,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  tool.icon,
+                  color: colors.textPrimary,
+                  size: 24,
+                  semanticLabel: tool.label,
+                ),
+                if (tool.badge != null)
+                  Positioned(
+                    top: -8,
+                    right: -18,
+                    child: Text(
+                      tool.badge!,
+                      style: AppTypography.mono(colors.accent, size: 8),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(tool.label, style: AppTypography.caption(colors.textPrimary)),

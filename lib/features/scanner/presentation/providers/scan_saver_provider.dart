@@ -8,9 +8,12 @@ import 'package:scanpdf/features/home/presentation/providers/documents_provider.
 import 'package:scanpdf/features/scanner/presentation/providers/scan_session_provider.dart';
 import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
 import 'package:scanpdf/services/scanner_service.dart';
+import 'package:scanpdf/services/cloud_sync_provider.dart';
 import 'package:scanpdf/shared/models/scan_document.dart';
+import 'package:scanpdf/shared/models/enums.dart';
 import 'package:scanpdf/shared/models/scan_page.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
 part 'scan_saver_provider.g.dart';
 
@@ -46,23 +49,26 @@ class ScanSaver {
       for (final captured in session.pages) {
         onProgress?.call(pages.length, session.pages.length);
         final original = await File(captured.tempPath).readAsBytes();
-        final processed = await scanner.process(
-          ScanProcessRequest(
-            bytes: original,
-            corners: captured.corners,
-            filter: captured.filter,
-            rotationQuarters: captured.rotationQuarters,
-            quality: settings.imageQuality,
-          ),
+        final request = ScanProcessRequest(
+          bytes: original,
+          corners: captured.corners,
+          filter: captured.filter,
+          rotationQuarters: captured.rotationQuarters,
+          quality: settings.imageQuality,
         );
-        final pageId = const Uuid().v4();
-        storedPageIds.add(pageId);
-        await repo.writePageFiles(
-          pageId: pageId,
-          processed: processed,
-          original: original,
-        );
-        pages.add(ScanPage(id: pageId, filter: captured.filter));
+        final processedPages = session.mode == CameraMode.book
+            ? await scanner.processBook(request)
+            : [await scanner.process(request)];
+        for (final processed in processedPages) {
+          final pageId = const Uuid().v4();
+          storedPageIds.add(pageId);
+          await repo.writePageFiles(
+            pageId: pageId,
+            processed: processed,
+            original: original,
+          );
+          pages.add(ScanPage(id: pageId, filter: captured.filter));
+        }
       }
 
       final now = DateTime.now();
@@ -109,6 +115,26 @@ class ScanSaver {
       // Fire-and-forget; search picks the text up when it lands.
       Future<void>.microtask(() => runOcr(document.id));
     }
+    if (settings.autoUploadEnabled) {
+      Future<void>.microtask(() async {
+        try {
+          await _ref.read(cloudSyncServiceProvider).uploadDocument(document);
+        } catch (_) {
+          // Local save is authoritative; a later manual sync retries uploads.
+        }
+      });
+    }
+    await _ref
+        .read(analyticsServiceProvider)
+        .track(
+          'scan_saved',
+          properties: {
+            'document_id': document.id,
+            'page_count': document.pageCount,
+            'tool_name': session.mode.name,
+            'source': session.fromEvent ? 'receipt_rescue' : 'app',
+          },
+        );
     return document;
   }
 
@@ -120,7 +146,20 @@ class ScanSaver {
     final doc = repo.getById(documentId);
     if (doc == null) return;
 
+    await _ref
+        .read(analyticsServiceProvider)
+        .track(
+          'ocr_started',
+          properties: {'document_id': documentId, 'page_count': doc.pageCount},
+        );
+
     var changed = false;
+    var failures = 0;
+    final languages = switch (_ref.read(settingsProvider).ocrLanguageBundle) {
+      'western' => const ['en-US', 'fr-FR', 'de-DE', 'es-ES', 'it-IT'],
+      'cjk' => const ['zh-Hans', 'ja-JP', 'ko-KR', 'en-US'],
+      _ => const ['en-US'],
+    };
     final updated = <ScanPage>[];
     for (final page in doc.pages) {
       if (page.hasOcr) {
@@ -128,15 +167,30 @@ class ScanSaver {
         continue;
       }
       try {
-        final text = await ocr.recognizeFile(resolve(page.processedFileName));
+        final text = await ocr.recognizeFile(
+          resolve(page.processedFileName),
+          languages: languages,
+        );
         updated.add(page.copyWith(ocrText: text));
         changed = true;
       } catch (_) {
+        failures++;
         updated.add(page);
       }
     }
-    if (!changed) return;
-    await repo.upsert(doc.copyWith(pages: updated));
-    _ref.read(documentsProvider.notifier).refresh();
+    if (changed) {
+      await repo.upsert(doc.copyWith(pages: updated));
+      _ref.read(documentsProvider.notifier).refresh();
+    }
+    await _ref
+        .read(analyticsServiceProvider)
+        .track(
+          failures > 0 && !changed ? 'ocr_failed' : 'ocr_completed',
+          properties: {
+            'document_id': documentId,
+            'page_count': doc.pageCount,
+            'failed_pages': failures,
+          },
+        );
   }
 }

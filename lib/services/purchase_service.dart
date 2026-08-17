@@ -41,17 +41,19 @@ class PlusState {
   );
 }
 
-/// Direct App Store IAP wrapper (no third-party billing, no account).
+/// Direct App Store IAP wrapper. Guest purchases stay device-local; signed-in
+/// purchases are also validated by the backend entitlement service.
 /// The purchase stream must be observed for the whole app lifetime so
 /// renewals/restores land whenever they arrive.
 class PurchaseService {
   PurchaseService({
-    required this.onEntitlementChanged,
+    required this.onPurchaseValidated,
     required this.onStateChanged,
   });
 
-  /// Persists the entitlement (Hive) when a purchase/restore lands.
-  final void Function(bool active) onEntitlementChanged;
+  /// Validates a StoreKit purchase. Guest mode persists locally; signed-in
+  /// mode verifies the transaction through the App Store Server API function.
+  final Future<bool> Function(PurchaseDetails purchase) onPurchaseValidated;
   final void Function(PlusState Function(PlusState) update) onStateChanged;
 
   final InAppPurchase _iap = InAppPurchase.instance;
@@ -131,10 +133,28 @@ class PurchaseService {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
           if (purchase.productID == AppConstants.plusProductId) {
-            onEntitlementChanged(true);
-            onStateChanged(
-              (s) => s.copyWith(isActive: true, purchasing: false),
-            );
+            try {
+              final active = await onPurchaseValidated(purchase);
+              onStateChanged(
+                (s) => s.copyWith(
+                  isActive: active,
+                  purchasing: false,
+                  error: active
+                      ? null
+                      : 'The subscription could not be verified.',
+                  clearError: active,
+                ),
+              );
+            } catch (error) {
+              debugPrint('PurchaseService validation failed: $error');
+              onStateChanged(
+                (s) => s.copyWith(
+                  purchasing: false,
+                  error:
+                      'Purchase received, but secure verification is temporarily unavailable. Restore when online.',
+                ),
+              );
+            }
           }
         case PurchaseStatus.error:
           onStateChanged(

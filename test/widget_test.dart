@@ -14,6 +14,10 @@ void main() {
       expect(resolveDeepLink(Uri.parse('scanpdf://unknown')), '/');
     });
 
+    test('auth callback returns to the account screen', () {
+      expect(resolveDeepLink(Uri.parse('scanpdf://auth-callback')), '/account');
+    });
+
     test('unknown scheme falls back to home', () {
       expect(resolveDeepLink(Uri.parse('otherapp://receipt-rescue')), '/');
     });

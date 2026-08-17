@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:scanpdf/app/theme/app_shapes.dart';
 import 'package:scanpdf/app/theme/app_spacing.dart';
@@ -41,6 +42,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
   Offset? _dragStartCenter;
   double _scaleStartWidth = 0.34;
   bool _applying = false;
+  bool _applyToAllPages = false;
 
   Future<Uint8List?> _renderSignature() async {
     return SignatureRenderer.render(_strokes);
@@ -71,6 +73,13 @@ class _SignScreenState extends ConsumerState<SignScreen> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _pickSignatureImage() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+    final bytes = await picked.readAsBytes();
+    if (mounted) setState(() => _signaturePng = bytes);
+  }
+
   Future<void> _apply() async {
     final png = _signaturePng;
     final doc = ref.read(documentByIdProvider(widget.documentId));
@@ -81,7 +90,9 @@ class _SignScreenState extends ConsumerState<SignScreen> {
           .read(viewerActionsProvider)
           .applySignature(
             document: doc,
-            pageIndex: _pageIndex,
+            pageIndices: _applyToAllPages
+                ? List<int>.generate(doc.pageCount, (index) => index)
+                : [_pageIndex],
             signaturePng: png,
             centerX: _center.dx,
             centerY: _center.dy,
@@ -236,6 +247,12 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          OutlinedButton.icon(
+            onPressed: _pickSignatureImage,
+            icon: const Icon(Icons.image_outlined),
+            label: const Text('Use signature image'),
           ),
           const SizedBox(height: AppSpacing.md),
           PressableTap(
@@ -432,6 +449,14 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                       ),
                     ),
                   ),
+                ),
+              if (doc.pageCount > 1)
+                SwitchListTile.adaptive(
+                  value: _applyToAllPages,
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Apply to every page'),
+                  onChanged: (value) =>
+                      setState(() => _applyToAllPages = value),
                 ),
               const SizedBox(height: AppSpacing.sm),
               PressableTap(

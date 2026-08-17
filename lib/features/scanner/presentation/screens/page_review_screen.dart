@@ -12,6 +12,7 @@ import 'package:scanpdf/core/utils/haptics.dart';
 import 'package:scanpdf/core/widgets/adaptive_dialog.dart';
 import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_session_provider.dart';
+import 'package:scanpdf/features/paywall/presentation/providers/plus_provider.dart';
 import 'package:scanpdf/features/scanner/presentation/widgets/camera_controls.dart';
 import 'package:scanpdf/features/scanner/presentation/widgets/filter_preview.dart';
 import 'package:scanpdf/features/scanner/presentation/widgets/save_document_sheet.dart';
@@ -159,6 +160,10 @@ class _PageReviewScreenState extends ConsumerState<PageReviewScreen> {
               FilterChipsRow(
                 selected: page.filter,
                 onSelected: (f) {
+                  if (f.isPlus && !ref.read(plusProvider).isActive) {
+                    context.push('/paywall');
+                    return;
+                  }
                   ref
                       .read(scanSessionProvider.notifier)
                       .updatePage(safeIndex, page.copyWith(filter: f));

@@ -158,10 +158,12 @@ class CameraModeBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return SizedBox(
+      height: 52,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         children: [
           PressableTap(
             style: PressStyle.dim,
@@ -192,7 +194,7 @@ class CameraModeBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: AppSpacing.lg),
+          const SizedBox(width: AppSpacing.md),
           for (final m in CameraMode.values)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),

@@ -12,6 +12,7 @@ import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/core/widgets/shimmer_loader.dart';
 import 'package:scanpdf/features/home/presentation/providers/documents_provider.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_saver_provider.dart';
+import 'package:scanpdf/shared/models/scan_page.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
 
 /// Recognized text for a document (Jira §20): view, copy, export.
@@ -26,6 +27,51 @@ class OcrResultScreen extends ConsumerStatefulWidget {
 
 class _OcrResultScreenState extends ConsumerState<OcrResultScreen> {
   bool _running = false;
+
+  Future<void> _editPageText(ScanPage page, int pageNumber) async {
+    var editedText = page.ocrText;
+    final revised = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit page $pageNumber text'),
+        content: SizedBox(
+          width: 520,
+          child: TextFormField(
+            initialValue: page.ocrText,
+            autofocus: true,
+            minLines: 8,
+            maxLines: 18,
+            keyboardType: TextInputType.multiline,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: (value) => editedText = value,
+            decoration: const InputDecoration(
+              hintText: 'Recognized text',
+              alignLabelWithHint: true,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(editedText),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (revised == null || revised.trim() == page.ocrText.trim()) return;
+    await ref
+        .read(documentsProvider.notifier)
+        .updateOcrText(
+          documentId: widget.documentId,
+          pageId: page.id,
+          text: revised,
+        );
+    Haptics.success();
+  }
 
   Future<void> _runOcr() async {
     if (_running) return;
@@ -121,12 +167,29 @@ class _OcrResultScreenState extends ConsumerState<OcrResultScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'PAGE ${index + 1}',
-                          style: AppTypography.mono(
-                            colors.textSecondary,
-                            size: 11,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'PAGE ${index + 1}',
+                                style: AppTypography.mono(
+                                  colors.textSecondary,
+                                  size: 11,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Edit page ${index + 1} text',
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => _editPageText(page, index + 1),
+                              icon: Icon(
+                                Icons.edit_outlined,
+                                color: colors.textSecondary,
+                                size: 19,
+                                semanticLabel: 'Edit recognized text',
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         SelectableText(

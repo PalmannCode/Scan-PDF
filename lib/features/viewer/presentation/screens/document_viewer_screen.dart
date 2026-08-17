@@ -16,6 +16,7 @@ import 'package:scanpdf/features/home/presentation/providers/documents_provider.
 import 'package:scanpdf/features/home/presentation/widgets/document_actions.dart';
 import 'package:scanpdf/features/home/presentation/widgets/document_tile.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_saver_provider.dart';
+import 'package:scanpdf/features/paywall/presentation/providers/plus_provider.dart';
 import 'package:scanpdf/features/viewer/presentation/providers/viewer_actions_provider.dart';
 import 'package:scanpdf/shared/models/enums.dart';
 import 'package:scanpdf/shared/models/scan_document.dart';
@@ -113,6 +114,38 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
                 if (updated != null && updated.hasOcr) {
                   await export.shareTxt(updated);
                 }
+              },
+            ),
+            SheetAction(
+              icon: Icons.description_outlined,
+              label: 'Word document (.docx) — Plus',
+              onTap: () async {
+                Navigator.of(context).pop();
+                if (!ref.read(plusProvider).isActive) {
+                  context.push('/paywall');
+                  return;
+                }
+                if (!doc.hasOcr) {
+                  await ref.read(scanSaverProvider).runOcr(doc.id);
+                }
+                final updated = ref
+                    .read(documentRepositoryProvider)
+                    .getById(doc.id);
+                if (updated != null && updated.hasOcr) {
+                  await export.shareWord(updated);
+                }
+              },
+            ),
+            SheetAction(
+              icon: Icons.slideshow_outlined,
+              label: 'PowerPoint (.pptx) — Plus',
+              onTap: () async {
+                Navigator.of(context).pop();
+                if (!ref.read(plusProvider).isActive) {
+                  context.push('/paywall');
+                  return;
+                }
+                await export.sharePowerPoint(doc);
               },
             ),
             SheetAction(
@@ -229,6 +262,7 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
           _ViewerMenu(
             onRename: () => _rename(doc),
             onMove: () => showMoveToFolder(context, ref, doc),
+            onTools: () => context.push('/document/${doc.id}/tools'),
             onTrash: () => _trash(doc),
           ),
           const SizedBox(width: AppSpacing.lg),
@@ -268,6 +302,7 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
               onSign: () => context.push('/document/${doc.id}/sign'),
               onText: () => context.push('/document/${doc.id}/text'),
               onMerge: () => _merge(doc),
+              onAi: () => context.push('/document/${doc.id}/ai'),
             ),
           ],
         ),
@@ -280,11 +315,13 @@ class _ViewerMenu extends StatelessWidget {
   const _ViewerMenu({
     required this.onRename,
     required this.onMove,
+    required this.onTools,
     required this.onTrash,
   });
 
   final VoidCallback onRename;
   final VoidCallback onMove;
+  final VoidCallback onTools;
   final VoidCallback onTrash;
 
   @override
@@ -309,6 +346,13 @@ class _ViewerMenu extends StatelessWidget {
           onPressed: onMove,
           child: Text(
             'Move to folder',
+            style: AppTypography.bodyMedium(colors.textPrimary),
+          ),
+        ),
+        MenuItemButton(
+          onPressed: onTools,
+          child: Text(
+            'Document tools',
             style: AppTypography.bodyMedium(colors.textPrimary),
           ),
         ),
@@ -339,12 +383,14 @@ class _ViewerToolbar extends StatelessWidget {
     required this.onSign,
     required this.onText,
     required this.onMerge,
+    required this.onAi,
   });
 
   final VoidCallback onExport;
   final VoidCallback onSign;
   final VoidCallback onText;
   final VoidCallback onMerge;
+  final VoidCallback onAi;
 
   @override
   Widget build(BuildContext context) {
@@ -383,6 +429,7 @@ class _ViewerToolbar extends StatelessWidget {
           tool(Icons.draw_outlined, 'Sign', onSign),
           tool(Icons.notes_rounded, 'Text', onText),
           tool(Icons.merge_rounded, 'Merge', onMerge),
+          tool(Icons.auto_awesome_rounded, 'AI', onAi),
         ],
       ),
     );

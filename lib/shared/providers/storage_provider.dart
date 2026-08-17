@@ -5,7 +5,10 @@ import 'package:scanpdf/services/app_review_service.dart';
 import 'package:scanpdf/services/export_service.dart';
 import 'package:scanpdf/services/ocr_service.dart';
 import 'package:scanpdf/services/pdf_service.dart';
+import 'package:scanpdf/services/pdf_security_service.dart';
 import 'package:scanpdf/services/scanner_service.dart';
+import 'package:scanpdf/services/analytics_service.dart';
+import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
 
 part 'storage_provider.g.dart';
 
@@ -46,6 +49,9 @@ PdfService pdfService(Ref ref) => const PdfService();
 ExportService exportService(Ref ref) => ExportService(
   pdfService: ref.watch(pdfServiceProvider),
   resolvePath: ref.watch(resolvePathProvider),
+  analytics: ref.watch(analyticsServiceProvider),
+  settings: ref.watch(settingsProvider),
+  pdfSecurityService: const PdfSecurityService(),
 );
 
 @Riverpod(keepAlive: true)

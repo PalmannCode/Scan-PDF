@@ -1,0 +1,29 @@
+project_id = "iyxksejttlhtcqwhpuvl"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[auth]
+enabled = true
+site_url = "scanpdf://auth-callback"
+additional_redirect_urls = ["scanpdf://auth-callback"]
+
+[functions.ai_document_assistant]
+verify_jwt = true
+
+[functions.translate_document]
+verify_jwt = true
+
+[functions.validate_entitlement]
+verify_jwt = true
+
+[functions.delete_account]
+verify_jwt = true

@@ -4,9 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:scanpdf/app/app.dart';
+import 'package:scanpdf/config/app_config.dart';
 import 'package:scanpdf/core/errors/error_boundary.dart';
+import 'package:scanpdf/services/analytics_service.dart';
+import 'package:scanpdf/services/encrypted_hive_service.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
 
 Future<void> main() async {
@@ -14,11 +18,36 @@ Future<void> main() async {
   ErrorBoundary.install();
   _registerFontLicenses();
 
+  if (AppConfig.hasSupabase) {
+    try {
+      await Supabase.initialize(
+        url: AppConfig.supabaseUrl,
+        publishableKey: AppConfig.supabasePublishableKey,
+        authOptions: const FlutterAuthClientOptions(
+          authFlowType: AuthFlowType.pkce,
+        ),
+      );
+      BackendRuntime.supabaseReady = true;
+    } catch (error, stack) {
+      BackendRuntime.supabaseError = error;
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'supabase initialization',
+        ),
+      );
+    }
+  }
+  await AnalyticsService.instance.initialize();
+
   final docsDir = await getApplicationDocumentsDirectory();
   await Hive.initFlutter();
-  await Hive.openBox<String>(HiveBoxes.documents);
-  await Hive.openBox<String>(HiveBoxes.folders);
-  await Hive.openBox<String>(HiveBoxes.prefs);
+  await EncryptedHiveService.openBoxes(const [
+    HiveBoxes.documents,
+    HiveBoxes.folders,
+    HiveBoxes.prefs,
+  ]);
 
   runApp(
     ProviderScope(

@@ -96,7 +96,7 @@ final class DocumentsProvider
   }
 }
 
-String _$documentsHash() => r'105c95bbd6804beb7b6622bc26b3f50a81542bd4';
+String _$documentsHash() => r'c88365e9bed49fd2bd821c6becf560b1146029fd';
 
 /// Whole library (including trash); screens slice it via the computed
 /// providers below.

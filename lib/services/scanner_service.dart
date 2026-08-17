@@ -34,6 +34,49 @@ class ScannerService {
   Future<Uint8List> process(ScanProcessRequest request) =>
       compute(_processSync, request);
 
+  /// Book mode turns one spread into two ordered pages, trimming the center
+  /// gutter and applying the selected cleanup filter to each half.
+  Future<List<Uint8List>> processBook(ScanProcessRequest request) =>
+      compute(_processBookSync, request);
+
+  static List<Uint8List> _processBookSync(ScanProcessRequest request) {
+    var source = img.decodeImage(request.bytes);
+    if (source == null) throw const FormatException('Unsupported image data');
+    source = img.bakeOrientation(source);
+    final gutter = math.max(2, (source.width * 0.015).round());
+    final mid = source.width ~/ 2;
+    final left = img.copyCrop(
+      source,
+      x: 0,
+      y: 0,
+      width: math.max(32, mid - gutter),
+      height: source.height,
+    );
+    final right = img.copyCrop(
+      source,
+      x: math.min(source.width - 32, mid + gutter),
+      y: 0,
+      width: math.max(32, source.width - mid - gutter),
+      height: source.height,
+    );
+    Uint8List finish(img.Image page) {
+      page = _applyFilter(page, request.filter);
+      final longest = math.max(page.width, page.height);
+      if (longest > request.maxDimension) {
+        final scale = request.maxDimension / longest;
+        page = img.copyResize(
+          page,
+          width: (page.width * scale).round(),
+          height: (page.height * scale).round(),
+          interpolation: img.Interpolation.linear,
+        );
+      }
+      return img.encodeJpg(page, quality: request.quality);
+    }
+
+    return [finish(left), finish(right)];
+  }
+
   static Uint8List _processSync(ScanProcessRequest request) {
     var image = img.decodeImage(request.bytes);
     if (image == null) {

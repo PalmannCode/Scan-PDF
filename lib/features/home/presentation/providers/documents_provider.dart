@@ -5,6 +5,7 @@ import 'package:scanpdf/features/home/domain/repositories/document_repository.da
 import 'package:scanpdf/shared/models/enums.dart';
 import 'package:scanpdf/shared/models/scan_document.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
+import 'package:scanpdf/services/analytics_service.dart';
 
 part 'documents_provider.g.dart';
 
@@ -35,6 +36,9 @@ class Documents extends _$Documents {
     if (doc == null) return;
     await _repo.upsert(doc.copyWith(title: title, modifiedAt: DateTime.now()));
     refresh();
+    await ref
+        .read(analyticsServiceProvider)
+        .track('document_renamed', properties: {'document_id': id});
   }
 
   Future<void> moveToFolder(String id, String? folderId) async {
@@ -44,21 +48,64 @@ class Documents extends _$Documents {
       doc.copyWith(folderId: folderId, modifiedAt: DateTime.now()),
     );
     refresh();
+    await ref
+        .read(analyticsServiceProvider)
+        .track(
+          'document_moved',
+          properties: {'document_id': id, 'folder_id': folderId},
+        );
+  }
+
+  Future<void> updateOcrText({
+    required String documentId,
+    required String pageId,
+    required String text,
+  }) async {
+    final doc = _repo.getById(documentId);
+    if (doc == null || !doc.pages.any((page) => page.id == pageId)) return;
+
+    final pages = [
+      for (final page in doc.pages)
+        if (page.id == pageId) page.copyWith(ocrText: text.trim()) else page,
+    ];
+    await _repo.upsert(doc.copyWith(pages: pages, modifiedAt: DateTime.now()));
+    refresh();
+    await ref
+        .read(analyticsServiceProvider)
+        .track(
+          'ocr_text_edited',
+          properties: {'document_id': documentId, 'page_id': pageId},
+        );
   }
 
   Future<void> moveToTrash(String id) async {
     await _repo.moveToTrash(id);
     refresh();
+    await ref
+        .read(analyticsServiceProvider)
+        .track(
+          'document_deleted',
+          properties: {'document_id': id, 'delete_type': 'trash'},
+        );
   }
 
   Future<void> restore(String id) async {
     await _repo.restore(id);
     refresh();
+    await ref
+        .read(analyticsServiceProvider)
+        .track('document_restored', properties: {'document_id': id});
   }
 
   Future<void> deletePermanent(String id) async {
     await _repo.deletePermanent(id);
     refresh();
+    await ref
+        .read(analyticsServiceProvider)
+        .track(
+          'document_deleted',
+          properties: {'document_id': id, 'delete_type': 'permanent'},
+        );
   }
 
   Future<void> emptyTrash() async {

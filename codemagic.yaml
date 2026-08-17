@@ -1,0 +1,59 @@
+workflows:
+  ios-release:
+    name: Scan PDF iOS Release
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        - appstore_credentials
+        - scanpdf_public_config
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.futurafund.scanpdf
+      vars:
+        APP_STORE_APPLE_ID: "6792221523"
+        APP_STORE_CONNECT_ISSUER_ID: "5e597735-8463-4139-84fa-bb390c06bbf7"
+        APP_STORE_CONNECT_KEY_IDENTIFIER: "849GKT37AM"
+        SUPABASE_URL: "https://iyxksejttlhtcqwhpuvl.supabase.co"
+        SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5eGtzZWp0dGxodGNxd2hwdXZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NzY2NDcsImV4cCI6MjEwMjU1MjY0N30.Nb_qmtLZK9GxL700A55LjGxz_xa97sRaxtZcODo4bDM"
+        AMPLITUDE_API_KEY: "42c18f271213478381ec34bc0625cfdf"
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $CM_BUILD_DIR/ios/Pods
+    scripts:
+      - name: Resolve Flutter packages
+        script: flutter pub get
+      - name: Install CocoaPods
+        script: find ios -name Podfile -execdir pod install \;
+      - name: Configure App Store signing
+        script: xcode-project use-profiles
+      - name: Verify generated source is current
+        script: dart run build_runner build
+      - name: Static analysis
+        script: flutter analyze
+      - name: Unit and widget tests
+        script: flutter test
+      - name: Build signed IPA
+        script: |
+          BUILD_NUMBER=$(($(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID") + 1))
+          flutter build ipa --release \
+            --build-name=1.0.0 \
+            --build-number="$BUILD_NUMBER" \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY" \
+            --dart-define="AMPLITUDE_API_KEY=$AMPLITUDE_API_KEY" \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: false

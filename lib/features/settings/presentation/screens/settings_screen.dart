@@ -11,12 +11,19 @@ import 'package:scanpdf/app/theme/app_typography.dart';
 import 'package:scanpdf/core/constants/app_constants.dart';
 import 'package:scanpdf/core/constants/url_constants.dart';
 import 'package:scanpdf/core/extensions/context_extensions.dart';
+import 'package:scanpdf/core/errors/user_message.dart';
 import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/event/domain/event_phase.dart';
+import 'package:scanpdf/features/auth/presentation/providers/auth_provider.dart';
+import 'package:scanpdf/features/home/presentation/providers/documents_provider.dart';
+import 'package:scanpdf/features/home/presentation/providers/folders_provider.dart';
 import 'package:scanpdf/features/paywall/presentation/providers/plus_provider.dart';
 import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
 import 'package:scanpdf/features/settings/presentation/widgets/settings_tile.dart';
 import 'package:scanpdf/shared/models/enums.dart';
+import 'package:scanpdf/services/cloud_sync_provider.dart';
+import 'package:scanpdf/services/analytics_service.dart';
+import 'package:scanpdf/features/viewer/presentation/providers/viewer_actions_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -29,6 +36,7 @@ class SettingsScreen extends ConsumerWidget {
     final colors = context.colors;
     final settings = ref.watch(settingsProvider);
     final plusActive = ref.watch(plusProvider.select((s) => s.isActive));
+    final user = ref.watch(authUserProvider).value;
     final eventPhase = currentEventPhase();
 
     return Scaffold(
@@ -81,10 +89,27 @@ class SettingsScreen extends ConsumerWidget {
               title: 'SCANNING',
               children: [
                 SettingsTile(
+                  icon: Icons.photo_camera_outlined,
+                  label: 'Default camera mode',
+                  value: settings.defaultCameraMode.label,
+                  onTap: () =>
+                      _cycleCameraMode(ref, settings.defaultCameraMode),
+                ),
+                SettingsTile(
                   icon: Icons.auto_awesome_rounded,
                   label: 'Default filter',
                   value: settings.defaultFilter.label,
-                  onTap: () => _cycleFilter(ref, settings.defaultFilter),
+                  onTap: () {
+                    const values = ScanFilter.values;
+                    final next =
+                        values[(values.indexOf(settings.defaultFilter) + 1) %
+                            values.length];
+                    if (next.isPlus && !plusActive) {
+                      context.push('/paywall');
+                      return;
+                    }
+                    _cycleFilter(ref, settings.defaultFilter);
+                  },
                 ),
                 SettingsToggleTile(
                   icon: Icons.text_fields_rounded,
@@ -95,6 +120,46 @@ class SettingsScreen extends ConsumerWidget {
                       .update((s) => s.copyWith(autoOcrAfterScan: v)),
                 ),
                 SettingsTile(
+                  icon: Icons.language_rounded,
+                  label: 'OCR language bundle',
+                  value: switch (settings.ocrLanguageBundle) {
+                    'western' => 'Western European',
+                    'cjk' => 'Chinese, Japanese & Korean',
+                    _ => 'Latin',
+                  },
+                  onTap: () => _cycleOcrBundle(ref, settings.ocrLanguageBundle),
+                ),
+                SettingsToggleTile(
+                  icon: Icons.find_in_page_outlined,
+                  label: 'Create searchable PDFs',
+                  value: settings.createSearchablePdf,
+                  onChanged: (enabled) => ref
+                      .read(settingsProvider.notifier)
+                      .update(
+                        (current) =>
+                            current.copyWith(createSearchablePdf: enabled),
+                      ),
+                ),
+                SettingsToggleTile(
+                  icon: Icons.center_focus_strong_rounded,
+                  label: 'Auto Capture',
+                  value: settings.autoCaptureEnabled,
+                  onChanged: (enabled) async {
+                    await ref
+                        .read(settingsProvider.notifier)
+                        .update(
+                          (current) =>
+                              current.copyWith(autoCaptureEnabled: enabled),
+                        );
+                    await ref
+                        .read(analyticsServiceProvider)
+                        .track(
+                          'auto_capture_toggled',
+                          properties: {'enabled': enabled},
+                        );
+                  },
+                ),
+                SettingsTile(
                   icon: Icons.high_quality_outlined,
                   label: 'Image quality',
                   value: switch (settings.imageQuality) {
@@ -102,7 +167,13 @@ class SettingsScreen extends ConsumerWidget {
                     >= 95 => 'Maximum',
                     _ => 'Balanced',
                   },
-                  onTap: () => _cycleQuality(ref, settings.imageQuality),
+                  onTap: () {
+                    if (settings.imageQuality == 85 && !plusActive) {
+                      context.push('/paywall');
+                      return;
+                    }
+                    _cycleQuality(ref, settings.imageQuality);
+                  },
                 ),
               ],
             ),
@@ -118,6 +189,64 @@ class SettingsScreen extends ConsumerWidget {
                     _ => 'System',
                   },
                   onTap: () => _cycleTheme(ref, settings.themeMode),
+                ),
+                SettingsTile(
+                  icon: Icons.app_shortcut_rounded,
+                  label: 'App Icon',
+                  value: settings.appIcon == 'default'
+                      ? 'Default'
+                      : settings.appIcon,
+                  onTap: () => context.push('/settings/app-icon'),
+                ),
+              ],
+            ),
+            SettingsSection(
+              title: 'DOCUMENT TOOLS',
+              children: [
+                SettingsTile(
+                  icon: Icons.draw_outlined,
+                  label: 'Signatures',
+                  value: plusActive ? 'Manage' : 'Plus',
+                  onTap: () => context.push('/settings/signatures'),
+                ),
+                SettingsTile(
+                  icon: Icons.route_rounded,
+                  label: 'Workflows',
+                  value: plusActive ? 'Configure' : 'Plus',
+                  onTap: () => context.push('/settings/workflows'),
+                ),
+                SettingsTile(
+                  icon: Icons.email_outlined,
+                  label: 'Email Template',
+                  value: settings.emailAttachmentFormat.toUpperCase(),
+                  onTap: () => context.push('/settings/email-template'),
+                ),
+              ],
+            ),
+            SettingsSection(
+              title: 'ADVANCED',
+              children: [
+                SettingsTile(
+                  icon: Icons.drive_file_rename_outline_rounded,
+                  label: 'Default file name',
+                  value: switch (settings.defaultFileNameFormat) {
+                    'Document yyyyMMdd-HHmm' => 'Document + date',
+                    'Receipt yyyyMMdd' => 'Receipt + date',
+                    _ => 'Scan + date and time',
+                  },
+                  onTap: () =>
+                      _cycleFileName(ref, settings.defaultFileNameFormat),
+                ),
+                SettingsToggleTile(
+                  icon: Icons.bug_report_outlined,
+                  label: 'Diagnostic logs',
+                  value: settings.diagnosticLogsEnabled,
+                  onChanged: (enabled) => ref
+                      .read(settingsProvider.notifier)
+                      .update(
+                        (current) =>
+                            current.copyWith(diagnosticLogsEnabled: enabled),
+                      ),
                 ),
               ],
             ),
@@ -138,12 +267,95 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             SettingsSection(
+              title: 'ACCOUNT & SYNC',
+              children: [
+                SettingsTile(
+                  icon: Icons.account_circle_outlined,
+                  label: 'Sign In / Account',
+                  value: user?.email ?? 'Guest',
+                  onTap: () => context.push('/account'),
+                ),
+                SettingsTile(
+                  icon: Icons.cloud_sync_outlined,
+                  label: 'Sync Now',
+                  value: user == null
+                      ? 'Sign in'
+                      : (settings.syncEnabled ? 'Enabled' : 'Manual'),
+                  onTap: () async {
+                    if (user == null) {
+                      context.push('/account');
+                      return;
+                    }
+                    try {
+                      final result = await ref
+                          .read(cloudSyncServiceProvider)
+                          .syncLibrary(settings);
+                      if (result.restoredSettings != null) {
+                        await ref
+                            .read(settingsProvider.notifier)
+                            .update((_) => result.restoredSettings!);
+                      }
+                      await ref.read(signatureStoreProvider).syncCloud();
+                      ref.read(documentsProvider.notifier).refresh();
+                      ref.read(foldersProvider.notifier).refresh();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Cloud sync complete: ${result.uploaded} uploaded, ${result.restored} restored.',
+                            ),
+                          ),
+                        );
+                      }
+                    } catch (error) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              userMessageFor(
+                                error,
+                                fallback:
+                                    'Cloud sync could not be completed. Check your connection and try again.',
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+                SettingsToggleTile(
+                  icon: Icons.cloud_upload_outlined,
+                  label: 'Auto Upload',
+                  value: settings.autoUploadEnabled,
+                  onChanged: (enabled) async {
+                    if (user == null) {
+                      context.push('/account');
+                      return;
+                    }
+                    if (enabled && !plusActive) {
+                      context.push('/paywall');
+                      return;
+                    }
+                    await ref
+                        .read(settingsProvider.notifier)
+                        .update(
+                          (current) => current.copyWith(
+                            syncEnabled: enabled || current.syncEnabled,
+                            autoUploadEnabled: enabled,
+                          ),
+                        );
+                  },
+                ),
+              ],
+            ),
+            SettingsSection(
               title: 'SUPPORT',
               children: [
                 SettingsTile(
                   icon: Icons.support_agent_rounded,
                   label: plusActive ? 'Priority Support' : 'Contact Us',
-                  onTap: () => _open(UrlConstants.support),
+                  onTap: () => context.push('/support'),
                 ),
                 SettingsTile(
                   icon: Icons.star_outline_rounded,
@@ -185,6 +397,7 @@ class SettingsScreen extends ConsumerWidget {
   void _cycleFilter(WidgetRef ref, ScanFilter current) {
     const values = ScanFilter.values;
     final next = values[(values.indexOf(current) + 1) % values.length];
+    if (next.isPlus && !ref.read(plusProvider).isActive) return;
     ref
         .read(settingsProvider.notifier)
         .update((s) => s.copyWith(defaultFilter: next));
@@ -210,6 +423,37 @@ class SettingsScreen extends ConsumerWidget {
     ref
         .read(settingsProvider.notifier)
         .update((s) => s.copyWith(themeMode: next));
+  }
+
+  void _cycleCameraMode(WidgetRef ref, CameraMode current) {
+    const modes = [CameraMode.document, CameraMode.text, CameraMode.book];
+    final index = modes.indexOf(current);
+    final next = modes[(index < 0 ? 0 : index + 1) % modes.length];
+    ref
+        .read(settingsProvider.notifier)
+        .update((settings) => settings.copyWith(defaultCameraMode: next));
+  }
+
+  void _cycleOcrBundle(WidgetRef ref, String current) {
+    const bundles = ['latin', 'western', 'cjk'];
+    final index = bundles.indexOf(current);
+    final next = bundles[(index < 0 ? 0 : index + 1) % bundles.length];
+    ref
+        .read(settingsProvider.notifier)
+        .update((settings) => settings.copyWith(ocrLanguageBundle: next));
+  }
+
+  void _cycleFileName(WidgetRef ref, String current) {
+    const patterns = [
+      'Scan yyyy-MM-dd HH.mm',
+      'Document yyyyMMdd-HHmm',
+      'Receipt yyyyMMdd',
+    ];
+    final index = patterns.indexOf(current);
+    final next = patterns[(index < 0 ? 0 : index + 1) % patterns.length];
+    ref
+        .read(settingsProvider.notifier)
+        .update((settings) => settings.copyWith(defaultFileNameFormat: next));
   }
 }
 

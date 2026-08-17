@@ -12,8 +12,39 @@
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-		<key>CFBundleInfoDictionaryVersion</key>
-		<string>6.0</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconName</key>
+			<string>AppIcon</string>
+		</dict>
+		<key>CFBundleAlternateIcons</key>
+		<dict>
+			<key>IconDark</key>
+			<dict>
+				<key>CFBundleIconName</key>
+				<string>IconDark</string>
+			</dict>
+			<key>IconOrange</key>
+			<dict>
+				<key>CFBundleIconName</key>
+				<string>IconOrange</string>
+			</dict>
+			<key>IconMinimal</key>
+			<dict>
+				<key>CFBundleIconName</key>
+				<string>IconMinimal</string>
+			</dict>
+			<key>IconPlus</key>
+			<dict>
+				<key>CFBundleIconName</key>
+				<string>IconPlus</string>
+			</dict>
+		</dict>
+	</dict>
 		<key>CFBundleName</key>
 		<string>ScanPDF</string>
 		<key>CFBundleURLTypes</key>
