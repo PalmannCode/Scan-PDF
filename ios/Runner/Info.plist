@@ -78,6 +78,10 @@
 		<string>Scan PDF lets you import photos from your library and convert them into PDF documents.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>Scan PDF can save exported document images to your photo library.</string>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>remote-notification</string>
+		</array>
 		<key>UIRequiredDeviceCapabilities</key>
 		<array>
 			<string>arm64</string>

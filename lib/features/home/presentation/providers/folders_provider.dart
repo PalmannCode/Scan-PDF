@@ -11,8 +11,10 @@ import 'package:scanpdf/services/analytics_service.dart';
 part 'folders_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-FolderRepository folderRepository(Ref ref) =>
-    FolderRepositoryImpl(box: ref.watch(foldersBoxProvider));
+FolderRepository folderRepository(Ref ref) => FolderRepositoryImpl(
+  box: ref.watch(foldersBoxProvider),
+  deletionLog: ref.watch(deletionLogProvider),
+);
 
 @Riverpod(keepAlive: true)
 class Folders extends _$Folders {

@@ -24,6 +24,7 @@ import 'package:scanpdf/shared/models/enums.dart';
 import 'package:scanpdf/services/cloud_sync_provider.dart';
 import 'package:scanpdf/services/analytics_service.dart';
 import 'package:scanpdf/features/viewer/presentation/providers/viewer_actions_provider.dart';
+import 'package:scanpdf/core/utils/file_name_formats.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -99,17 +100,7 @@ class SettingsScreen extends ConsumerWidget {
                   icon: Icons.auto_awesome_rounded,
                   label: 'Default filter',
                   value: settings.defaultFilter.label,
-                  onTap: () {
-                    const values = ScanFilter.values;
-                    final next =
-                        values[(values.indexOf(settings.defaultFilter) + 1) %
-                            values.length];
-                    if (next.isPlus && !plusActive) {
-                      context.push('/paywall');
-                      return;
-                    }
-                    _cycleFilter(ref, settings.defaultFilter);
-                  },
+                  onTap: () => _cycleFilter(ref, settings.defaultFilter),
                 ),
                 SettingsToggleTile(
                   icon: Icons.text_fields_rounded,
@@ -168,7 +159,10 @@ class SettingsScreen extends ConsumerWidget {
                     _ => 'Balanced',
                   },
                   onTap: () {
-                    if (settings.imageQuality == 85 && !plusActive) {
+                    // Owner decision 2026-08-19: Maximum quality is the Plus
+                    // hook, so a free user tapping this always sees the
+                    // upsell rather than cycling between free values.
+                    if (!plusActive) {
                       context.push('/paywall');
                       return;
                     }
@@ -229,9 +223,11 @@ class SettingsScreen extends ConsumerWidget {
                 SettingsTile(
                   icon: Icons.drive_file_rename_outline_rounded,
                   label: 'Default file name',
-                  value: switch (settings.defaultFileNameFormat) {
-                    'Document yyyyMMdd-HHmm' => 'Document + date',
-                    'Receipt yyyyMMdd' => 'Receipt + date',
+                  value: switch (FileNameFormats.normalize(
+                    settings.defaultFileNameFormat,
+                  )) {
+                    FileNameFormats.document => 'Document + date',
+                    FileNameFormats.receipt => 'Receipt + date',
                     _ => 'Scan + date and time',
                   },
                   onTap: () =>
@@ -256,7 +252,18 @@ class SettingsScreen extends ConsumerWidget {
                 SettingsTile(
                   icon: Icons.restore_rounded,
                   label: 'Restore Purchases',
-                  onTap: () => ref.read(plusProvider.notifier).restore(),
+                  onTap: () async {
+                    // Plus.restore() returns the user-facing outcome; dropping
+                    // it made this tile silent on failure and on success.
+                    final message = await ref
+                        .read(plusProvider.notifier)
+                        .restore();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(message)));
+                    }
+                  },
                 ),
                 SettingsTile(
                   icon: Icons.manage_accounts_outlined,
@@ -396,8 +403,13 @@ class SettingsScreen extends ConsumerWidget {
 
   void _cycleFilter(WidgetRef ref, ScanFilter current) {
     const values = ScanFilter.values;
-    final next = values[(values.indexOf(current) + 1) % values.length];
-    if (next.isPlus && !ref.read(plusProvider).isActive) return;
+    final plusActive = ref.read(plusProvider).isActive;
+    var index = values.indexOf(current);
+    ScanFilter next;
+    do {
+      index = (index + 1) % values.length;
+      next = values[index];
+    } while (next.isPlus && !plusActive && next != current);
     ref
         .read(settingsProvider.notifier)
         .update((s) => s.copyWith(defaultFilter: next));
@@ -444,12 +456,8 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _cycleFileName(WidgetRef ref, String current) {
-    const patterns = [
-      'Scan yyyy-MM-dd HH.mm',
-      'Document yyyyMMdd-HHmm',
-      'Receipt yyyyMMdd',
-    ];
-    final index = patterns.indexOf(current);
+    const patterns = FileNameFormats.all;
+    final index = patterns.indexOf(FileNameFormats.normalize(current));
     final next = patterns[(index < 0 ? 0 : index + 1) % patterns.length];
     ref
         .read(settingsProvider.notifier)

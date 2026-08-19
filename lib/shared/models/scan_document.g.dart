@@ -22,6 +22,7 @@ _ScanDocument _$ScanDocumentFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
+      ocrAttempted: json['ocrAttempted'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ScanDocumentToJson(_ScanDocument instance) =>
@@ -34,4 +35,5 @@ Map<String, dynamic> _$ScanDocumentToJson(_ScanDocument instance) =>
       'pages': instance.pages,
       'isDeleted': instance.isDeleted,
       'deletedAt': instance.deletedAt?.toIso8601String(),
+      'ocrAttempted': instance.ocrAttempted,
     };

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:scanpdf/app/theme/app_colors.dart';
 import 'package:scanpdf/app/theme/app_typography.dart';
 import 'package:scanpdf/core/extensions/context_extensions.dart';
 
@@ -43,19 +44,24 @@ class _FadingReceiptState extends State<FadingReceipt>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    // Paper and ink are fixed light-theme values, not the flipping
+    // `paperCard`/`textPrimary` tokens: this illustration only ever renders
+    // on the dark indigo shell, which is identical in both themes. In dark
+    // mode `paperCard` resolves to #211D48 against a #26214F shell (1.2:1),
+    // so the receipt silhouette vanishes and the ink flips light-on-light.
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) => CustomPaint(
           size: Size(widget.width, widget.height),
           painter: _FadingReceiptPainter(
-            paper: colors.paperCard,
-            ink: colors.textPrimary,
+            paper: AppColors.paperWhite,
+            ink: AppColors.navyText,
             accent: colors.accent,
             pulse: widget.animated
                 ? Curves.easeInOutSine.transform(_controller.value)
                 : 0.5,
-            totalStyle: AppTypography.mono(colors.textPrimary, size: 9),
+            totalStyle: AppTypography.mono(AppColors.navyText, size: 9),
           ),
         ),
       ),

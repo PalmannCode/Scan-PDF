@@ -206,7 +206,6 @@ class ViewerActions {
     Iterable<String> imagePaths,
   ) async {
     final repo = _ref.read(documentRepositoryProvider);
-    final pages = [...document.pages];
     final created = <ScanPage>[];
     try {
       for (final path in imagePaths) {
@@ -224,12 +223,17 @@ class ViewerActions {
           processed: processed,
           original: processed,
         );
-        final page = ScanPage(id: id, filter: ScanFilter.original);
-        pages.add(page);
-        created.add(page);
+        created.add(ScanPage(id: id, filter: ScanFilter.original));
       }
+      // Re-read the document: pages may have been deleted or reordered
+      // while the images were processing, and a stale snapshot would
+      // resurrect deleted pages whose files are already gone.
+      final current = repo.getById(document.id) ?? document;
       await repo.upsert(
-        document.copyWith(pages: pages, modifiedAt: DateTime.now()),
+        current.copyWith(
+          pages: [...current.pages, ...created],
+          modifiedAt: DateTime.now(),
+        ),
       );
       _ref.read(documentsProvider.notifier).refresh();
     } catch (_) {

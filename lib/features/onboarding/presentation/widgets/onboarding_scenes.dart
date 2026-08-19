@@ -99,8 +99,10 @@ class ExportSceneIllustration extends StatelessWidget {
                           vertical: AppSpacing.sm,
                         ),
                         decoration: BoxDecoration(
+                          // accentDeep for the white-labelled chip: white on
+                          // #FF7A2E is 2.6:1, on #F2600F it clears 3:1.
                           color: i == 0
-                              ? colors.accent
+                              ? colors.accentDeep
                               : colors.onShell.withValues(alpha: 0.14),
                           borderRadius: const BorderRadius.all(
                             Radius.circular(AppShapes.chip),

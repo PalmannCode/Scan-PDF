@@ -11,31 +11,57 @@ class PlusState {
   const PlusState({
     this.isActive = false,
     this.storeAvailable = false,
-    this.product,
+    this.products = const [],
+    this.selectedProductId = AppConstants.plusDefaultProductId,
     this.purchasing = false,
     this.error,
   });
 
   final bool isActive;
   final bool storeAvailable;
-  final ProductDetails? product;
+
+  /// Every Plus product StoreKit returned, in the order the paywall shows
+  /// them (weekly first, then monthly).
+  final List<ProductDetails> products;
+
+  /// Which product the CTA will buy. Always one of
+  /// [AppConstants.plusProductIds]; may not be loaded yet.
+  final String selectedProductId;
+
   final bool purchasing;
   final String? error;
 
-  /// Live localized price, falling back to the Jira-specified offer.
-  String get priceLabel => product?.price ?? AppConstants.plusFallbackPrice;
+  ProductDetails? productFor(String id) {
+    for (final product in products) {
+      if (product.id == id) return product;
+    }
+    return null;
+  }
+
+  /// The product the CTA buys, or null when the store has not loaded it.
+  ProductDetails? get selectedProduct => productFor(selectedProductId);
+
+  /// Live localized price for [id], falling back to the published offer copy
+  /// until StoreKit responds.
+  String priceLabelFor(String id) =>
+      productFor(id)?.price ?? AppConstants.fallbackPriceFor(id);
+
+  /// Live localized price of the selected product.
+  String get priceLabel => priceLabelFor(selectedProductId);
 
   PlusState copyWith({
     bool? isActive,
     bool? storeAvailable,
-    ProductDetails? product,
+    List<ProductDetails>? products,
+    String? selectedProductId,
     bool? purchasing,
     String? error,
     bool clearError = false,
   }) => PlusState(
     isActive: isActive ?? this.isActive,
     storeAvailable: storeAvailable ?? this.storeAvailable,
-    product: product ?? this.product,
+    products: products ?? this.products,
+    selectedProductId: selectedProductId ?? this.selectedProductId,
     purchasing: purchasing ?? this.purchasing,
     error: clearError ? null : (error ?? this.error),
   );
@@ -58,6 +84,7 @@ class PurchaseService {
 
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
+  bool _sawRestorablePurchase = false;
 
   Future<void> init() async {
     _subscription = _iap.purchaseStream.listen(
@@ -78,9 +105,9 @@ class PurchaseService {
         onStateChanged((s) => s.copyWith(storeAvailable: false));
         return;
       }
-      final response = await _iap.queryProductDetails({
-        AppConstants.plusProductId,
-      });
+      final response = await _iap.queryProductDetails(
+        AppConstants.plusProductIds,
+      );
       debugPrint(
         'PurchaseService: notFoundIDs=${response.notFoundIDs} '
         'error=${response.error}',
@@ -91,8 +118,28 @@ class PurchaseService {
         onStateChanged((s) => s.copyWith(storeAvailable: false));
         return;
       }
-      final product = response.productDetails.first;
-      onStateChanged((s) => s.copyWith(storeAvailable: true, product: product));
+      // Show weekly first, monthly second, regardless of StoreKit's order.
+      const order = [
+        AppConstants.plusWeeklyProductId,
+        AppConstants.plusMonthlyProductId,
+      ];
+      final products = [...response.productDetails]
+        ..sort((a, b) => order.indexOf(a.id).compareTo(order.indexOf(b.id)));
+      onStateChanged((s) {
+        // Keep the user's choice when it is still purchasable; otherwise fall
+        // back to the default, then to whatever the store did return.
+        final ids = products.map((p) => p.id).toSet();
+        final selected = ids.contains(s.selectedProductId)
+            ? s.selectedProductId
+            : ids.contains(AppConstants.plusDefaultProductId)
+            ? AppConstants.plusDefaultProductId
+            : products.first.id;
+        return s.copyWith(
+          storeAvailable: true,
+          products: products,
+          selectedProductId: selected,
+        );
+      });
     } catch (error) {
       debugPrint('PurchaseService.loadProduct failed: $error');
       onStateChanged((s) => s.copyWith(storeAvailable: false));
@@ -118,10 +165,30 @@ class PurchaseService {
 
   Future<void> restore() async {
     onStateChanged((s) => s.copyWith(purchasing: true, clearError: true));
+    _sawRestorablePurchase = false;
     try {
       await _iap.restorePurchases();
+      if (!_sawRestorablePurchase) {
+        // StoreKit reports restored transactions on purchaseStream before
+        // restorePurchases completes; allow a short grace window for the
+        // events to be delivered before concluding nothing was restorable.
+        await Future<void>.delayed(const Duration(seconds: 2));
+      }
+      if (!_sawRestorablePurchase) {
+        onStateChanged(
+          (s) => s.copyWith(
+            error: 'No previous purchase was found for this Apple ID.',
+          ),
+        );
+      }
     } catch (error) {
       debugPrint('PurchaseService.restore failed: $error');
+      onStateChanged(
+        (s) => s.copyWith(
+          error:
+              'Purchases could not be restored. Check your connection and try again.',
+        ),
+      );
     } finally {
       onStateChanged((s) => s.copyWith(purchasing: false));
     }
@@ -132,7 +199,8 @@ class PurchaseService {
       switch (purchase.status) {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
-          if (purchase.productID == AppConstants.plusProductId) {
+          if (AppConstants.plusProductIds.contains(purchase.productID)) {
+            _sawRestorablePurchase = true;
             try {
               final active = await onPurchaseValidated(purchase);
               onStateChanged(

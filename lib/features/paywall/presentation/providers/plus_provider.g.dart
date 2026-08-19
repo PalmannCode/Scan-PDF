@@ -46,7 +46,7 @@ final class PlusProvider extends $NotifierProvider<Plus, PlusState> {
   }
 }
 
-String _$plusHash() => r'2e78f1ee3b67bb49ad575b0f83ea72974d5a1aa0';
+String _$plusHash() => r'5e294bb894c358650408e9c5c079a35e5dd3a9d9';
 
 /// Owns the app-lifetime purchase stream (keepAlive) so renewals and
 /// restores are observed no matter which screen is open.

@@ -156,6 +156,79 @@ abstract class AppTheme {
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
+      // Material buttons are used on the tool screens, which sit on the dark
+      // shell (and pure black in Measure). Without these, buttons inherit
+      // `primary` — deep indigo — and render dark-on-dark, and their disabled
+      // states collapse to onSurface@12%/38%, which is invisible there. The
+      // accent works on both paper and shell, so every button state is keyed
+      // off it explicitly.
+      filledButtonTheme: FilledButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            // accentDeep, not accent: white on #FF7A2E is only 2.6:1, while
+            // white on #F2600F clears 3:1 without changing the brand hue.
+            (states) => states.contains(WidgetState.disabled)
+                ? c.accentDeep.withValues(alpha: 0.70)
+                : c.accentDeep,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? Colors.white.withValues(alpha: 0.72)
+                : Colors.white,
+          ),
+          iconColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? Colors.white.withValues(alpha: 0.72)
+                : Colors.white,
+          ),
+          minimumSize: const WidgetStatePropertyAll(Size.fromHeight(48)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? c.accent.withValues(alpha: 0.60)
+                : c.accent,
+          ),
+          iconColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? c.accent.withValues(alpha: 0.60)
+                : c.accent,
+          ),
+          side: WidgetStateProperty.resolveWith(
+            (states) => BorderSide(
+              color: states.contains(WidgetState.disabled)
+                  ? c.accent.withValues(alpha: 0.45)
+                  : c.accent.withValues(alpha: 0.75),
+            ),
+          ),
+          minimumSize: const WidgetStatePropertyAll(Size.fromHeight(48)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? c.accent.withValues(alpha: 0.60)
+                : c.accent,
+          ),
+        ),
+      ),
+      // Field labels and helper text were rendering at onSurface opacity on
+      // the shell, where they wash out; key them off the paper text tokens.
+      inputDecorationTheme: InputDecorationTheme(
+        labelStyle: AppTypography.body(c.textSecondary),
+        floatingLabelStyle: AppTypography.body(c.accent),
+        hintStyle: AppTypography.body(c.textSecondary),
+        helperStyle: AppTypography.caption(c.textSecondary),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: c.hairline),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: c.accent, width: 2),
+        ),
+      ),
       extensions: [c],
     );
   }

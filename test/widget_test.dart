@@ -43,10 +43,36 @@ void main() {
   });
 
   group('release configuration', () {
-    test('uses the approved monthly App Store product', () {
-      expect(AppConstants.plusProductId, 'plus_pdf_monthly');
-      expect(AppConstants.plusFallbackPrice, r'$3.99');
-      expect(AppConstants.plusBillingPeriod, 'month');
+    test('sells both App Store subscription products', () {
+      expect(AppConstants.plusWeeklyProductId, 'scanpdf.plus.weekly');
+      expect(AppConstants.plusMonthlyProductId, 'scanpdf.plus.monthly');
+      expect(AppConstants.plusProductIds, {
+        'scanpdf.plus.weekly',
+        'scanpdf.plus.monthly',
+      });
+    });
+
+    test('offer copy matches the configured store prices', () {
+      expect(
+        AppConstants.fallbackPriceFor(AppConstants.plusWeeklyProductId),
+        r'$3.99',
+      );
+      expect(
+        AppConstants.fallbackPriceFor(AppConstants.plusMonthlyProductId),
+        r'$9.99',
+      );
+      expect(AppConstants.periodFor(AppConstants.plusWeeklyProductId), 'week');
+      expect(
+        AppConstants.periodFor(AppConstants.plusMonthlyProductId),
+        'month',
+      );
+    });
+
+    test('the pre-selected plan is one the store actually sells', () {
+      expect(
+        AppConstants.plusProductIds,
+        contains(AppConstants.plusDefaultProductId),
+      );
     });
 
     test('keeps the approved bundle and App Store identifiers', () {

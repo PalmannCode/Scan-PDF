@@ -55,7 +55,7 @@ final class DocumentRepositoryProvider
 }
 
 String _$documentRepositoryHash() =>
-    r'66fd3a5693964fb1d8ed8a0feb885969b6ccb2f1';
+    r'42bc7cb331db36d3e244993a52c8e47fca1b4401';
 
 /// Whole library (including trash); screens slice it via the computed
 /// providers below.

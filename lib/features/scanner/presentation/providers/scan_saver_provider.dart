@@ -160,27 +160,43 @@ class ScanSaver {
       'cjk' => const ['zh-Hans', 'ja-JP', 'ko-KR', 'en-US'],
       _ => const ['en-US'],
     };
-    final updated = <ScanPage>[];
+    final ocrById = <String, String>{};
     for (final page in doc.pages) {
-      if (page.hasOcr) {
-        updated.add(page);
-        continue;
-      }
+      if (page.hasOcr) continue;
       try {
-        final text = await ocr.recognizeFile(
+        ocrById[page.id] = await ocr.recognizeFile(
           resolve(page.processedFileName),
           languages: languages,
         );
-        updated.add(page.copyWith(ocrText: text));
-        changed = true;
       } catch (_) {
         failures++;
-        updated.add(page);
       }
     }
-    if (changed) {
-      await repo.upsert(doc.copyWith(pages: updated));
-      _ref.read(documentsProvider.notifier).refresh();
+    // Re-read at write time and merge only the recognized text (keyed by
+    // page id) plus the attempted flag into the current document, so a
+    // rename, move, trash, or page edit that landed while OCR ran is never
+    // undone by this snapshot.
+    final current = repo.getById(documentId);
+    if (current != null) {
+      final merged = <ScanPage>[];
+      for (final page in current.pages) {
+        final text = ocrById[page.id];
+        if (text != null && !page.hasOcr) {
+          merged.add(page.copyWith(ocrText: text));
+          changed = true;
+        } else {
+          merged.add(page);
+        }
+      }
+      // A clean pass that found nothing still counts as attempted; a pass
+      // with failures does not, so a transient OCR error stays retryable.
+      final attempted = current.ocrAttempted || failures == 0;
+      if (changed || attempted != current.ocrAttempted) {
+        await repo.upsert(
+          current.copyWith(pages: merged, ocrAttempted: attempted),
+        );
+        _ref.read(documentsProvider.notifier).refresh();
+      }
     }
     await _ref
         .read(analyticsServiceProvider)

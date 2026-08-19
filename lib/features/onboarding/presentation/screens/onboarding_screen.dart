@@ -134,7 +134,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       vertical: AppSpacing.lg,
                     ),
                     decoration: BoxDecoration(
-                      color: colors.accent,
+                      // accentDeep, not accent: this CTA is hand-rolled
+                      // (PressableTap + Container), so the central
+                      // FilledButton theme does not reach it. White on
+                      // #FF7A2E is 2.6:1; on #F2600F it clears 3:1.
+                      color: colors.accentDeep,
                       borderRadius: AppShapes.buttonRadius,
                     ),
                     child: Text(

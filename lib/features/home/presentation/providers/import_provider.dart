@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:scanpdf/features/scanner/domain/models/captured_page.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_session_provider.dart';
 import 'package:scanpdf/shared/models/enums.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
@@ -20,16 +21,28 @@ ImportController importController(Ref ref) => ImportController(ref);
 /// Imported pages default to the Original filter — imports are not
 /// auto-enhanced.
 class ImportController {
-  ImportController(this._ref);
+  ImportController(this._ref) {
+    // Rasterized PDF pages are written to tmp by [importFiles]; delete each
+    // one once the scan session no longer references it (saved, discarded,
+    // or replaced by a new session).
+    _ref.listen(scanSessionProvider, (previous, next) {
+      _deleteReleasedTempFiles(next);
+    });
+  }
 
   final Ref _ref;
+
+  /// Temp files this controller created (rasterized PDF pages).
+  final Set<String> _ownedTempPaths = {};
 
   /// Returns the number of pages added (0 = user cancelled).
   Future<int> importPhotos() async {
     final picked = await ImagePicker().pickMultiImage();
     if (picked.isEmpty) return 0;
     final session = _ref.read(scanSessionProvider.notifier);
-    session.start();
+    // Imports must never inherit the Book default camera mode — the saver
+    // would spread-split every imported page down the middle.
+    session.start(mode: CameraMode.document);
     for (final file in picked) {
       session.addCapture(file.path);
       _setOriginalFilter();
@@ -62,7 +75,9 @@ class ImportController {
     if (paths.isEmpty) return 0;
 
     final session = _ref.read(scanSessionProvider.notifier);
-    session.start();
+    // Imports must never inherit the Book default camera mode — the saver
+    // would spread-split every imported page down the middle.
+    session.start(mode: CameraMode.document);
     var added = 0;
     final tmp = await getTemporaryDirectory();
     for (final path in paths) {
@@ -72,6 +87,7 @@ class ImportController {
         for (final pageBytes in pages) {
           final tempPath = '${tmp.path}/import_${const Uuid().v4()}.png';
           await File(tempPath).writeAsBytes(pageBytes, flush: true);
+          _ownedTempPaths.add(tempPath);
           session.addCapture(tempPath);
           _setOriginalFilter();
           added++;
@@ -93,5 +109,20 @@ class ImportController {
       last,
       pages[last].copyWith(filter: ScanFilter.original),
     );
+  }
+
+  void _deleteReleasedTempFiles(ScanSession session) {
+    if (_ownedTempPaths.isEmpty) return;
+    final live = session.pages.map((p) => p.tempPath).toSet();
+    for (final path in _ownedTempPaths.difference(live)) {
+      _ownedTempPaths.remove(path);
+      Future<void>.microtask(() async {
+        try {
+          await File(path).delete();
+        } catch (_) {
+          // Best effort — iOS reclaims tmp under storage pressure anyway.
+        }
+      });
+    }
   }
 }

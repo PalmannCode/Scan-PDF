@@ -149,9 +149,13 @@ class _AppIconScreenState extends ConsumerState<AppIconScreen> {
                             ],
                           ),
                           if (_changing == option.id)
-                            const Padding(
-                              padding: EdgeInsets.only(top: AppSpacing.xs),
-                              child: LinearProgressIndicator(),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: AppSpacing.xs,
+                              ),
+                              child: LinearProgressIndicator(
+                                color: colors.accent,
+                              ),
                             ),
                         ],
                       ),

@@ -42,12 +42,12 @@ class LibraryStatsStrip extends StatelessWidget {
             children: [
               _TickingCount(value: documentCount),
               Text(
-                ' documents · ',
+                documentCount == 1 ? ' document · ' : ' documents · ',
                 style: AppTypography.mono(colors.onShellMuted, size: 12),
               ),
               _TickingCount(value: pageCount),
               Text(
-                ' pages',
+                pageCount == 1 ? ' page' : ' pages',
                 style: AppTypography.mono(colors.onShellMuted, size: 12),
               ),
             ],

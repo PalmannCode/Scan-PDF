@@ -53,7 +53,7 @@ final class FolderRepositoryProvider
   }
 }
 
-String _$folderRepositoryHash() => r'43a0e1459376819ce4091de05010b7089751cbc9';
+String _$folderRepositoryHash() => r'47eced03906e0d653ef954a429aa423ba63554cb';
 
 @ProviderFor(Folders)
 final foldersProvider = FoldersProvider._();

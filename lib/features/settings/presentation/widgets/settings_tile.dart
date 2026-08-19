@@ -103,7 +103,7 @@ class SettingsTile extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
             Icon(
               Icons.chevron_right_rounded,
-              color: colors.hairline,
+              color: colors.textSecondary,
               size: 20,
               semanticLabel: 'Open',
             ),

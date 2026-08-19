@@ -34,12 +34,13 @@ public class OcrPlugin: NSObject, FlutterPlugin {
         }
         return
       }
+      let orientation = CGImagePropertyOrientation(image.imageOrientation)
       if call.method == "detectDocument" {
-        self.detectDocument(cgImage: cgImage, result: result)
+        self.detectDocument(cgImage: cgImage, orientation: orientation, result: result)
         return
       }
       if call.method == "scanBarcode" {
-        self.scanBarcode(cgImage: cgImage, result: result)
+        self.scanBarcode(cgImage: cgImage, orientation: orientation, result: result)
         return
       }
       let request = VNRecognizeTextRequest { request, error in
@@ -64,7 +65,8 @@ public class OcrPlugin: NSObject, FlutterPlugin {
         let supported = try? request.supportedRecognitionLanguages()
         request.recognitionLanguages = languages.filter { supported?.contains($0) == true }
       }
-      let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+      let handler = VNImageRequestHandler(
+        cgImage: cgImage, orientation: orientation, options: [:])
       do {
         try handler.perform([request])
       } catch {
@@ -77,7 +79,10 @@ public class OcrPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  private func scanBarcode(cgImage: CGImage, result: @escaping FlutterResult) {
+  private func scanBarcode(
+    cgImage: CGImage, orientation: CGImagePropertyOrientation,
+    result: @escaping FlutterResult
+  ) {
     let request = VNDetectBarcodesRequest { request, error in
       if let error = error {
         DispatchQueue.main.async {
@@ -91,7 +96,8 @@ public class OcrPlugin: NSObject, FlutterPlugin {
       DispatchQueue.main.async { result(value) }
     }
     request.symbologies = [.qr]
-    let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+    let handler = VNImageRequestHandler(
+      cgImage: cgImage, orientation: orientation, options: [:])
     do {
       try handler.perform([request])
     } catch {
@@ -101,7 +107,10 @@ public class OcrPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  private func detectDocument(cgImage: CGImage, result: @escaping FlutterResult) {
+  private func detectDocument(
+    cgImage: CGImage, orientation: CGImagePropertyOrientation,
+    result: @escaping FlutterResult
+  ) {
     let request = VNDetectRectanglesRequest { request, error in
       if let error = error {
         DispatchQueue.main.async {
@@ -126,13 +135,33 @@ public class OcrPlugin: NSObject, FlutterPlugin {
     request.minimumConfidence = 0.65
     request.minimumAspectRatio = 0.2
     request.quadratureTolerance = 30
-    let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+    let handler = VNImageRequestHandler(
+      cgImage: cgImage, orientation: orientation, options: [:])
     do {
       try handler.perform([request])
     } catch {
       DispatchQueue.main.async {
         result(FlutterError(code: "detection_failed", message: error.localizedDescription, details: nil))
       }
+    }
+  }
+}
+
+extension CGImagePropertyOrientation {
+  /// Bridges the EXIF orientation UIKit decoded from the file so Vision
+  /// reports normalized coordinates in the same upright space the Dart
+  /// pipeline produces with `img.bakeOrientation`.
+  fileprivate init(_ orientation: UIImage.Orientation) {
+    switch orientation {
+    case .up: self = .up
+    case .upMirrored: self = .upMirrored
+    case .down: self = .down
+    case .downMirrored: self = .downMirrored
+    case .left: self = .left
+    case .leftMirrored: self = .leftMirrored
+    case .right: self = .right
+    case .rightMirrored: self = .rightMirrored
+    @unknown default: self = .up
     }
   }
 }

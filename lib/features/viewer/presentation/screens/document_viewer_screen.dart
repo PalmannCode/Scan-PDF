@@ -34,6 +34,7 @@ class DocumentViewerScreen extends ConsumerStatefulWidget {
 
 class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
   int _page = 0;
+  bool _zoomed = false;
 
   Future<void> _rename(ScanDocument doc) async {
     final name = await AdaptiveDialog.prompt(
@@ -61,6 +62,13 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
 
   Future<void> _export(ScanDocument doc) async {
     final export = ref.read(exportServiceProvider);
+    // Captured up front: the text exports run OCR after the sheet is popped,
+    // and without this a document that yields no text closed the sheet and
+    // then did nothing at all.
+    final messenger = ScaffoldMessenger.of(context);
+    // Captured before the sheet pops: OCR can take ~20s, by which time this
+    // sheet's context is gone and navigation through it would be swallowed.
+    final router = GoRouter.of(context);
     await AppBottomSheet.show<void>(
       context,
       title: 'Export',
@@ -113,6 +121,16 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
                     .getById(doc.id);
                 if (updated != null && updated.hasOcr) {
                   await export.shareTxt(updated);
+                } else {
+                  // Owner decision 2026-08-19: open the OCR screen so the user
+                  // can see the per-page result and retry or type text in,
+                  // rather than being told nothing happened.
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('No text recognized — opening text view.'),
+                    ),
+                  );
+                  router.push('/document/${doc.id}/text');
                 }
               },
             ),
@@ -133,6 +151,16 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
                     .getById(doc.id);
                 if (updated != null && updated.hasOcr) {
                   await export.shareWord(updated);
+                } else {
+                  // Owner decision 2026-08-19: open the OCR screen so the user
+                  // can see the per-page result and retry or type text in,
+                  // rather than being told nothing happened.
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('No text recognized — opening text view.'),
+                    ),
+                  );
+                  router.push('/document/${doc.id}/text');
                 }
               },
             ),
@@ -273,23 +301,42 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
           children: [
             Expanded(
               child: PageView.builder(
+                // Let InteractiveViewer own the drag while a page is
+                // zoomed so a one-finger pan doesn't flip pages.
+                physics: _zoomed ? const NeverScrollableScrollPhysics() : null,
                 onPageChanged: (index) => setState(() => _page = index),
                 itemCount: doc.pageCount,
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: InteractiveViewer(
-                    maxScale: 5,
-                    child: Center(
-                      child: ClipRRect(
-                        borderRadius: AppShapes.thumbnailRadius,
-                        child: Image.file(
-                          File(resolve(doc.pages[index].processedFileName)),
-                          fit: BoxFit.contain,
+                itemBuilder: (context, index) {
+                  final page = doc.pages[index];
+                  final file = File(resolve(page.processedFileName));
+                  return Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: _ZoomablePage(
+                      onZoomChanged: (zoomed) {
+                        if (zoomed != _zoomed) {
+                          setState(() => _zoomed = zoomed);
+                        }
+                      },
+                      child: Center(
+                        child: ClipRRect(
+                          borderRadius: AppShapes.thumbnailRadius,
+                          child: Image.file(
+                            file,
+                            // Key by mtime so a rewritten page file
+                            // (e.g. after signing) repaints; a mounted
+                            // Image ignores an equal FileImage even
+                            // after the cache entry is evicted.
+                            key: ValueKey(
+                              '${page.id}:'
+                              '${file.statSync().modified.microsecondsSinceEpoch}',
+                            ),
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
             Text(
@@ -307,6 +354,51 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ZoomablePage extends StatefulWidget {
+  const _ZoomablePage({required this.onZoomChanged, required this.child});
+
+  final ValueChanged<bool> onZoomChanged;
+  final Widget child;
+
+  @override
+  State<_ZoomablePage> createState() => _ZoomablePageState();
+}
+
+class _ZoomablePageState extends State<_ZoomablePage> {
+  final TransformationController _controller = TransformationController();
+  bool _zoomed = false;
+
+  void _handleTransform() {
+    final zoomed = _controller.value.getMaxScaleOnAxis() > 1.01;
+    if (zoomed != _zoomed) {
+      _zoomed = zoomed;
+      widget.onZoomChanged(zoomed);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_handleTransform);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_handleTransform);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InteractiveViewer(
+      transformationController: _controller,
+      maxScale: 5,
+      child: widget.child,
     );
   }
 }

@@ -34,6 +34,12 @@ class AdvancedDocumentToolsScreen extends ConsumerWidget {
               itemCount: doc.pageCount,
               itemBuilder: (context, index) => CheckboxListTile(
                 value: selected.contains(index),
+                // The scheme's `primary` is the deep indigo shell colour, so a
+                // ticked box would read as dark-on-dark in the dark theme (and
+                // `onPrimary` is not overridden alongside it, so the tick has
+                // no guaranteed contrast either). Selection uses the accent.
+                activeColor: context.colors.accent,
+                checkColor: Colors.white,
                 title: Text('Page ${index + 1}'),
                 onChanged: (value) => setDialogState(() {
                   value == true ? selected.add(index) : selected.remove(index);
@@ -71,6 +77,10 @@ class AdvancedDocumentToolsScreen extends ConsumerWidget {
     final level = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
+      // The app's bottomSheetTheme is transparent because AppBottomSheet
+      // paints its own paper container; a raw sheet has to supply one or it
+      // renders straight onto the dimmed backdrop with no surface at all.
+      backgroundColor: context.colors.paperCard,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -112,6 +122,8 @@ class AdvancedDocumentToolsScreen extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      // See _compress: the theme's sheet background is transparent by design.
+      backgroundColor: context.colors.paperCard,
       builder: (sheetContext) => StatefulBuilder(
         builder: (context, setSheetState) => Padding(
           padding: EdgeInsets.fromLTRB(
@@ -166,6 +178,10 @@ class AdvancedDocumentToolsScreen extends ConsumerWidget {
                   value: opacity,
                   min: 0.05,
                   max: 0.8,
+                  // Defaults to the scheme's deep indigo `primary`, which is
+                  // invisible against the dark-theme paper card.
+                  activeColor: context.colors.accent,
+                  inactiveColor: context.colors.hairline,
                   onChanged: (value) => setSheetState(() => opacity = value),
                 ),
                 DropdownButtonFormField<String>(

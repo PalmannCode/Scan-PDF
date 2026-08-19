@@ -6,6 +6,7 @@ import 'package:scanpdf/config/app_config.dart';
 import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
 import 'package:scanpdf/services/purchase_service.dart';
 import 'package:scanpdf/services/analytics_service.dart';
+import 'package:scanpdf/core/constants/app_constants.dart';
 
 part 'plus_provider.g.dart';
 
@@ -93,7 +94,32 @@ class Plus extends _$Plus {
       final active =
           (status == 'active' || status == 'trialing') &&
           (end == null || end.isAfter(DateTime.now()));
-      await ref.read(appStateRepositoryProvider).setPlusActive(active);
+
+      // The schema seeds every new auth user a subscriptions row with
+      // status 'free' (handle_new_user trigger), and validate_entitlement may
+      // not have written the real status yet. Treating that as authoritative
+      // revokes Plus from someone who just paid — and from a guest who bought
+      // before signing in. Only an explicit terminal status revokes; anything
+      // else leaves the locally verified StoreKit entitlement untouched.
+      const revoking = {
+        'expired',
+        'cancelled',
+        'canceled',
+        'revoked',
+        'refunded',
+      };
+      final appState = ref.read(appStateRepositoryProvider);
+      if (!active && !revoking.contains(status)) {
+        // No backend opinion yet — report status but keep the entitlement.
+        await ref
+            .read(analyticsServiceProvider)
+            .track(
+              'subscription_status_updated',
+              properties: {'status': status ?? 'unknown'},
+            );
+        return;
+      }
+      await appState.setPlusActive(active);
       state = state.copyWith(isActive: active);
       ref.read(analyticsServiceProvider).setSubscriptionStatus(active);
       await ref
@@ -107,16 +133,30 @@ class Plus extends _$Plus {
     }
   }
 
+  /// Switches which Plus plan the paywall CTA will buy.
+  void selectProduct(String productId) {
+    if (!AppConstants.plusProductIds.contains(productId)) return;
+    if (state.selectedProductId == productId) return;
+    state = state.copyWith(selectedProductId: productId, clearError: true);
+  }
+
   Future<void> buy() async {
-    final product = state.product;
+    final product = state.selectedProduct;
     if (product == null) return;
-    await ref.read(analyticsServiceProvider).track('plus_purchase_started');
+    await ref
+        .read(analyticsServiceProvider)
+        .track('plus_purchase_started', properties: {'product_id': product.id});
     await _service?.buy(product);
   }
 
-  Future<void> restore() async {
+  /// Runs a StoreKit restore and returns the outcome as a ready-to-show
+  /// message so entry points without an inline error slot (Settings) can
+  /// surface it. The same text is left in [PlusState.error] for screens that
+  /// render it inline (the paywall).
+  Future<String> restore() async {
     await ref.read(analyticsServiceProvider).track('restore_purchases_clicked');
     await _service?.restore();
+    return state.error ?? 'Your purchases have been restored.';
   }
 
   Future<void> reloadProduct() => _service?.loadProduct() ?? Future.value();

@@ -105,14 +105,37 @@ Deno.serve(async (req) => {
     const transaction = decodePart(info.signedTransactionInfo as string);
     const bundleId = Deno.env.get("APP_STORE_BUNDLE_ID") ??
       "com.futurafund.scanpdf";
-    const productId = Deno.env.get("APP_STORE_PRODUCT_ID") ??
-      "plus_pdf_monthly";
+    // Either Plus plan grants the entitlement. APP_STORE_PRODUCT_ID may hold a
+    // comma-separated list; it defaults to both configured products.
+    const productIds = (Deno.env.get("APP_STORE_PRODUCT_ID") ??
+      "scanpdf.plus.weekly,scanpdf.plus.monthly")
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+    const purchasedProductId = String(transaction.productId ?? "");
     if (
-      transaction.bundleId !== bundleId || transaction.productId !== productId
+      transaction.bundleId !== bundleId ||
+      !productIds.includes(purchasedProductId)
     ) {
       return json(
         { error: "Transaction does not belong to this product." },
         400,
+      );
+    }
+    // One App Store transaction unlocks exactly one account. Without this a
+    // single purchase could be replayed to grant Plus on unlimited accounts.
+    const originalTransactionId = String(
+      transaction.originalTransactionId ?? transaction_id,
+    );
+    const { data: existingOwner } = await admin
+      .from("subscriptions")
+      .select("user_id")
+      .eq("app_store_transaction_id", originalTransactionId)
+      .maybeSingle();
+    if (existingOwner && existingOwner.user_id !== user.id) {
+      return json(
+        { error: "This purchase is already linked to another account." },
+        409,
       );
     }
     const expiresMs = Number(transaction.expiresDate ?? 0);
@@ -121,10 +144,10 @@ Deno.serve(async (req) => {
     const status = active ? "active" : "expired";
     await admin.from("subscriptions").upsert({
       user_id: user.id,
-      app_store_transaction_id: transaction.originalTransactionId ??
+      app_store_transaction_id: originalTransactionId ??
         transaction.transactionId,
       status,
-      plan_id: productId,
+      plan_id: purchasedProductId,
       source: "app_store",
       current_period_start: transaction.purchaseDate
         ? new Date(Number(transaction.purchaseDate)).toISOString()

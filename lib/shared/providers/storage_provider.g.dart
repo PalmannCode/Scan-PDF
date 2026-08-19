@@ -232,6 +232,47 @@ final class PrefsBoxProvider
 
 String _$prefsBoxHash() => r'c182ad6626f36b390681fa98962f761b85608675';
 
+@ProviderFor(deletionLog)
+final deletionLogProvider = DeletionLogProvider._();
+
+final class DeletionLogProvider
+    extends $FunctionalProvider<DeletionLog, DeletionLog, DeletionLog>
+    with $Provider<DeletionLog> {
+  DeletionLogProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deletionLogProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deletionLogHash();
+
+  @$internal
+  @override
+  $ProviderElement<DeletionLog> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  DeletionLog create(Ref ref) {
+    return deletionLog(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DeletionLog value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DeletionLog>(value),
+    );
+  }
+}
+
+String _$deletionLogHash() => r'b2f1b260949bf5ddfb23fcea9c9f0c7f8e11fe6b';
+
 @ProviderFor(scannerService)
 final scannerServiceProvider = ScannerServiceProvider._();
 

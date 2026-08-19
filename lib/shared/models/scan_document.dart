@@ -21,6 +21,11 @@ abstract class ScanDocument with _$ScanDocument {
     @Default(<ScanPage>[]) List<ScanPage> pages,
     @Default(false) bool isDeleted,
     DateTime? deletedAt,
+
+    /// True once text recognition has completed a clean pass, even if it
+    /// found nothing. Distinguishes "no text on this page" from "not run
+    /// yet", so the screen stops silently re-running Vision on every visit.
+    @Default(false) bool ocrAttempted,
   }) = _ScanDocument;
 
   factory ScanDocument.fromJson(Map<String, dynamic> json) =>

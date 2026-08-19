@@ -119,13 +119,13 @@ class AuthService {
   Future<void> signOut() async {
     await _client.auth.signOut();
     await _analytics.track('sign_out_clicked');
-    await _analytics.setUser(null);
+    await _analytics.reset();
   }
 
   Future<void> deleteAccount() async {
     await _client.functions.invoke('delete_account');
     await _analytics.track('account_deleted');
     await _client.auth.signOut(scope: SignOutScope.global);
-    await _analytics.setUser(null);
+    await _analytics.reset();
   }
 }

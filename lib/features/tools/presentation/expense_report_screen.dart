@@ -63,7 +63,9 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
       context.push('/paywall');
       return;
     }
-    if (ref.read(authUserProvider).value == null) {
+    final user = await ref.read(authUserProvider.future);
+    if (!mounted) return;
+    if (user == null) {
       context.push('/account');
       return;
     }
@@ -82,6 +84,7 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
       _entries.clear();
     });
     try {
+      final failed = <String>[];
       for (final id in _selected) {
         var doc = ref.read(documentRepositoryProvider).getById(id);
         if (doc == null) continue;
@@ -90,25 +93,36 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
           doc = ref.read(documentRepositoryProvider).getById(id);
         }
         if (doc == null || !doc.hasOcr) {
-          throw StateError(
-            'Text could not be recognized in ${doc?.title ?? 'a receipt'}.',
-          );
+          failed.add(doc?.title ?? 'a receipt');
+          continue;
         }
-        final response = await ref
-            .read(aiServiceProvider)
-            .run(action: AiAction.extract, text: doc.ocrText);
-        final result = response.result;
-        _entries.add(
-          _EditableExpense(
-            documentTitle: doc.title,
-            merchant: result['vendor_name']?.toString() ?? '',
-            date: result['document_date']?.toString() ?? '',
-            total: result['total_amount']?.toString() ?? '',
-            tax: result['tax_amount']?.toString() ?? '',
-            currency: result['currency']?.toString() ?? '',
-          ),
-        );
+        try {
+          final response = await ref
+              .read(aiServiceProvider)
+              .run(action: AiAction.extract, text: doc.ocrText);
+          final result = response.result;
+          _entries.add(
+            _EditableExpense(
+              documentTitle: doc.title,
+              merchant: result['vendor_name']?.toString() ?? '',
+              date: result['document_date']?.toString() ?? '',
+              total: result['total_amount']?.toString() ?? '',
+              tax: result['tax_amount']?.toString() ?? '',
+              currency: result['currency']?.toString() ?? '',
+            ),
+          );
+        } catch (_) {
+          failed.add(doc.title);
+          continue;
+        }
         if (mounted) setState(() {});
+      }
+      if (failed.isNotEmpty && mounted) {
+        setState(
+          () => _error =
+              '${failed.length} of ${_selected.length} receipt(s) could not '
+              'be processed: ${failed.join(', ')}.',
+        );
       }
     } catch (error) {
       if (mounted) {
@@ -163,6 +177,12 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _selected.contains(document.id),
+                // The M3 default fills a checked box with colorScheme.primary
+                // (deep indigo) and draws the tick in onPrimary. On the dark
+                // paper background both land within ~1.2:1 of the surface, so
+                // a selected receipt looks identical to an unselected one.
+                activeColor: colors.textPrimary,
+                checkColor: colors.paperBg,
                 title: Text(document.title),
                 subtitle: Text('${document.pageCount} page(s)'),
                 onChanged: _working
@@ -187,9 +207,11 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => ref
-                        .read(expenseReportServiceProvider)
-                        .shareCsv(_confirmed),
+                    onPressed: _working
+                        ? null
+                        : () => ref
+                              .read(expenseReportServiceProvider)
+                              .shareCsv(_confirmed),
                     icon: const Icon(Icons.table_chart_outlined),
                     label: const Text('Export CSV'),
                   ),
@@ -197,9 +219,11 @@ class _ExpenseReportScreenState extends ConsumerState<ExpenseReportScreen> {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () => ref
-                        .read(expenseReportServiceProvider)
-                        .sharePdf(_confirmed),
+                    onPressed: _working
+                        ? null
+                        : () => ref
+                              .read(expenseReportServiceProvider)
+                              .sharePdf(_confirmed),
                     icon: const Icon(Icons.picture_as_pdf_outlined),
                     label: const Text('Export PDF'),
                   ),

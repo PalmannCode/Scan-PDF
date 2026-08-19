@@ -30,6 +30,7 @@ class _MeasureScreenState extends State<MeasureScreen> {
   Offset _m1 = const Offset(0.3, 0.35);
   Offset _m2 = const Offset(0.7, 0.35);
   final GlobalKey _captureKey = GlobalKey();
+  Size _viewSize = Size.zero;
 
   @override
   void dispose() {
@@ -39,9 +40,17 @@ class _MeasureScreenState extends State<MeasureScreen> {
 
   double get _result {
     final known = double.tryParse(_known.text) ?? 0;
-    final reference = (_r2 - _r1).distance;
-    final measured = (_m2 - _m1).distance;
+    final reference = _lineLength(_r1, _r2);
+    final measured = _lineLength(_m1, _m2);
     return reference <= 0 ? 0 : known * measured / reference;
+  }
+
+  double _lineLength(Offset a, Offset b) {
+    if (_viewSize.isEmpty) return (a - b).distance;
+    return Offset(
+      (a.dx - b.dx) * _viewSize.width,
+      (a.dy - b.dy) * _viewSize.height,
+    ).distance;
   }
 
   void _move(Offset local, Size size) {
@@ -101,6 +110,12 @@ class _MeasureScreenState extends State<MeasureScreen> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final size = constraints.biggest;
+                  if (_viewSize != size) {
+                    _viewSize = size;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() {});
+                    });
+                  }
                   return RepaintBoundary(
                     key: _captureKey,
                     child: GestureDetector(

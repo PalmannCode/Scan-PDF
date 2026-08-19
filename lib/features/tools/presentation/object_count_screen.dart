@@ -39,7 +39,9 @@ class _ObjectCountScreenState extends ConsumerState<ObjectCountScreen> {
   }
 
   Future<void> _count() async {
-    if (ref.read(authUserProvider).value == null) {
+    final user = await ref.read(authUserProvider.future);
+    if (!mounted) return;
+    if (user == null) {
       context.push('/account');
       return;
     }

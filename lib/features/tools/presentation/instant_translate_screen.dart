@@ -14,6 +14,7 @@ import 'package:scanpdf/core/errors/user_message.dart';
 import 'package:scanpdf/core/widgets/adaptive_dialog.dart';
 import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/auth/presentation/providers/auth_provider.dart';
+import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
 import 'package:scanpdf/services/ai_provider.dart';
 import 'package:scanpdf/services/ai_service.dart';
 import 'package:scanpdf/shared/providers/storage_provider.dart';
@@ -50,9 +51,14 @@ class _InstantTranslateScreenState
 
   Future<void> _recognize() async {
     try {
+      final languages = switch (ref.read(settingsProvider).ocrLanguageBundle) {
+        'western' => const ['en-US', 'fr-FR', 'de-DE', 'es-ES', 'it-IT'],
+        'cjk' => const ['zh-Hans', 'ja-JP', 'ko-KR', 'en-US'],
+        _ => const ['en-US'],
+      };
       final text = await ref
           .read(ocrServiceProvider)
-          .recognizeFile(widget.imagePath);
+          .recognizeFile(widget.imagePath, languages: languages);
       if (mounted) {
         setState(() {
           _ocr = text;
@@ -74,7 +80,9 @@ class _InstantTranslateScreenState
       setState(() => _error = 'No readable text was found.');
       return;
     }
-    if (ref.read(authUserProvider).value == null) {
+    final user = await ref.read(authUserProvider.future);
+    if (!mounted) return;
+    if (user == null) {
       context.push('/account');
       return;
     }
@@ -191,8 +199,12 @@ class _InstantTranslateScreenState
                       onPressed: () async {
                         final translated =
                             '${_result!['translation'] ?? _result!['answer'] ?? ''}';
+                        final messenger = ScaffoldMessenger.of(context);
                         await Clipboard.setData(
                           ClipboardData(text: translated),
+                        );
+                        messenger.showSnackBar(
+                          const SnackBar(content: Text('Copied')),
                         );
                       },
                       icon: const Icon(Icons.copy_rounded),

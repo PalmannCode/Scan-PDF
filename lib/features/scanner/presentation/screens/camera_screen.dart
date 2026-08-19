@@ -71,6 +71,8 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
   bool _autoCaptureActive = false;
   bool _analyzingPreview = false;
   int _stableDocumentFrames = 0;
+  int _initGeneration = 0;
+  int _initialPageCount = 0;
   DateTime _lastPreviewAnalysis = DateTime.fromMillisecondsSinceEpoch(0);
   late ScanFilter _filter;
   late FlashMode _flash;
@@ -82,15 +84,21 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
     final settings = ref.read(settingsProvider);
     _filter = settings.defaultFilter;
     _flash = settings.flashAuto ? FlashMode.auto : FlashMode.off;
+    _initialPageCount = ref.read(scanSessionProvider).pages.length;
     _initCamera();
   }
 
   Future<void> _initCamera() async {
+    final generation = ++_initGeneration;
+    final previous = _controller;
+    _controller = null;
     setState(() {
       _initializing = true;
       _permissionDenied = false;
       _cameraUnavailable = false;
     });
+    await previous?.dispose();
+    if (!mounted || generation != _initGeneration) return;
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
@@ -110,7 +118,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
       );
       await controller.initialize();
       await controller.setFlashMode(_flash);
-      if (!mounted) {
+      if (!mounted || generation != _initGeneration) {
         await controller.dispose();
         return;
       }
@@ -120,14 +128,14 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
       });
       await _updateAutoCapture();
     } on CameraException catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _initGeneration) return;
       setState(() {
         _initializing = false;
         _permissionDenied = e.code.contains('AccessDenied');
         _cameraUnavailable = !_permissionDenied;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || generation != _initGeneration) return;
       setState(() {
         _initializing = false;
         _cameraUnavailable = true;
@@ -140,6 +148,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
     final controller = _controller;
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
+      _initGeneration++;
       controller?.dispose();
       _controller = null;
     } else if (state == AppLifecycleState.resumed &&
@@ -276,6 +285,8 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
           );
           return;
         }
+        if (!await _confirmDiscardForTool()) return;
+        if (!mounted) return;
         ref.read(scanSessionProvider.notifier).clear();
         context.pushReplacement(
           '/qr-result?value=${Uri.encodeComponent(value)}',
@@ -285,13 +296,16 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
       if (mode == CameraMode.measure ||
           mode == CameraMode.count ||
           mode == CameraMode.translate) {
+        if (!mounted) return;
+        if (!await _confirmDiscardForTool()) return;
+        if (!mounted) return;
         ref.read(scanSessionProvider.notifier).clear();
         final route = switch (mode) {
           CameraMode.measure => '/measure',
           CameraMode.count => '/count',
           _ => '/translate',
         };
-        if (mounted) context.pushReplacement(route, extra: shot.path);
+        context.pushReplacement(route, extra: shot.path);
         return;
       }
       List<double>? corners;
@@ -349,18 +363,45 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
     }
   }
 
+  Future<bool> _confirmDiscardForTool() async {
+    if (ref.read(scanSessionProvider).pages.isEmpty) return true;
+    return AdaptiveDialog.confirm(
+      context,
+      title: 'Discard scans?',
+      message:
+          '${ref.read(scanSessionProvider).pages.length} captured page(s) '
+          'will be discarded.',
+      confirmLabel: 'Discard',
+      destructive: true,
+    );
+  }
+
   Future<void> _close() async {
-    final session = ref.read(scanSessionProvider);
-    if (session.pages.isNotEmpty) {
+    final addedPages =
+        ref.read(scanSessionProvider).pages.length - _initialPageCount;
+    if (addedPages > 0) {
       final ok = await AdaptiveDialog.confirm(
         context,
         title: 'Discard scans?',
-        message: '${session.pages.length} captured page(s) will be discarded.',
+        message: '$addedPages captured page(s) will be discarded.',
         confirmLabel: 'Discard',
         destructive: true,
       );
-      if (!ok) return;
-      ref.read(scanSessionProvider.notifier).clear();
+      if (!ok || !mounted) return;
+      final notifier = ref.read(scanSessionProvider.notifier);
+      if (_initialPageCount > 0) {
+        // Opened from review via 'Add page': drop only the pages captured
+        // here so the existing batch survives the return to review.
+        for (
+          var i = ref.read(scanSessionProvider).pages.length - 1;
+          i >= _initialPageCount;
+          i--
+        ) {
+          notifier.removePage(i);
+        }
+      } else {
+        notifier.clear();
+      }
     }
     if (mounted) context.pop();
   }
@@ -395,6 +436,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
             Expanded(child: _buildPreview()),
             if (_showFilters)
               FilterChipsRow(
+                onShell: true,
                 selected: _filter,
                 onSelected: (f) {
                   if (f.isPlus && !ref.read(plusProvider).isActive) {

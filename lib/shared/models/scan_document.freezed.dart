@@ -15,7 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ScanDocument {
 
- String get id; String get title; String? get folderId; DateTime get createdAt; DateTime get modifiedAt; List<ScanPage> get pages; bool get isDeleted; DateTime? get deletedAt;
+ String get id; String get title; String? get folderId; DateTime get createdAt; DateTime get modifiedAt; List<ScanPage> get pages; bool get isDeleted; DateTime? get deletedAt;/// True once text recognition has completed a clean pass, even if it
+/// found nothing. Distinguishes "no text on this page" from "not run
+/// yet", so the screen stops silently re-running Vision on every visit.
+ bool get ocrAttempted;
 /// Create a copy of ScanDocument
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +31,16 @@ $ScanDocumentCopyWith<ScanDocument> get copyWith => _$ScanDocumentCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScanDocument&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.modifiedAt, modifiedAt) || other.modifiedAt == modifiedAt)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScanDocument&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.modifiedAt, modifiedAt) || other.modifiedAt == modifiedAt)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.ocrAttempted, ocrAttempted) || other.ocrAttempted == ocrAttempted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,folderId,createdAt,modifiedAt,const DeepCollectionEquality().hash(pages),isDeleted,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,title,folderId,createdAt,modifiedAt,const DeepCollectionEquality().hash(pages),isDeleted,deletedAt,ocrAttempted);
 
 @override
 String toString() {
-  return 'ScanDocument(id: $id, title: $title, folderId: $folderId, createdAt: $createdAt, modifiedAt: $modifiedAt, pages: $pages, isDeleted: $isDeleted, deletedAt: $deletedAt)';
+  return 'ScanDocument(id: $id, title: $title, folderId: $folderId, createdAt: $createdAt, modifiedAt: $modifiedAt, pages: $pages, isDeleted: $isDeleted, deletedAt: $deletedAt, ocrAttempted: $ocrAttempted)';
 }
 
 
@@ -48,7 +51,7 @@ abstract mixin class $ScanDocumentCopyWith<$Res>  {
   factory $ScanDocumentCopyWith(ScanDocument value, $Res Function(ScanDocument) _then) = _$ScanDocumentCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String? folderId, DateTime createdAt, DateTime modifiedAt, List<ScanPage> pages, bool isDeleted, DateTime? deletedAt
+ String id, String title, String? folderId, DateTime createdAt, DateTime modifiedAt, List<ScanPage> pages, bool isDeleted, DateTime? deletedAt, bool ocrAttempted
 });
 
 
@@ -65,7 +68,7 @@ class _$ScanDocumentCopyWithImpl<$Res>
 
 /// Create a copy of ScanDocument
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? folderId = freezed,Object? createdAt = null,Object? modifiedAt = null,Object? pages = null,Object? isDeleted = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? folderId = freezed,Object? createdAt = null,Object? modifiedAt = null,Object? pages = null,Object? isDeleted = null,Object? deletedAt = freezed,Object? ocrAttempted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -75,7 +78,8 @@ as DateTime,modifiedAt: null == modifiedAt ? _self.modifiedAt : modifiedAt // ig
 as DateTime,pages: null == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
 as List<ScanPage>,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
 as bool,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,ocrAttempted: null == ocrAttempted ? _self.ocrAttempted : ocrAttempted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -160,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? folderId,  DateTime createdAt,  DateTime modifiedAt,  List<ScanPage> pages,  bool isDeleted,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? folderId,  DateTime createdAt,  DateTime modifiedAt,  List<ScanPage> pages,  bool isDeleted,  DateTime? deletedAt,  bool ocrAttempted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ScanDocument() when $default != null:
-return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifiedAt,_that.pages,_that.isDeleted,_that.deletedAt);case _:
+return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifiedAt,_that.pages,_that.isDeleted,_that.deletedAt,_that.ocrAttempted);case _:
   return orElse();
 
 }
@@ -181,10 +185,10 @@ return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? folderId,  DateTime createdAt,  DateTime modifiedAt,  List<ScanPage> pages,  bool isDeleted,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? folderId,  DateTime createdAt,  DateTime modifiedAt,  List<ScanPage> pages,  bool isDeleted,  DateTime? deletedAt,  bool ocrAttempted)  $default,) {final _that = this;
 switch (_that) {
 case _ScanDocument():
-return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifiedAt,_that.pages,_that.isDeleted,_that.deletedAt);case _:
+return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifiedAt,_that.pages,_that.isDeleted,_that.deletedAt,_that.ocrAttempted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +205,10 @@ return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? folderId,  DateTime createdAt,  DateTime modifiedAt,  List<ScanPage> pages,  bool isDeleted,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? folderId,  DateTime createdAt,  DateTime modifiedAt,  List<ScanPage> pages,  bool isDeleted,  DateTime? deletedAt,  bool ocrAttempted)?  $default,) {final _that = this;
 switch (_that) {
 case _ScanDocument() when $default != null:
-return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifiedAt,_that.pages,_that.isDeleted,_that.deletedAt);case _:
+return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifiedAt,_that.pages,_that.isDeleted,_that.deletedAt,_that.ocrAttempted);case _:
   return null;
 
 }
@@ -216,7 +220,7 @@ return $default(_that.id,_that.title,_that.folderId,_that.createdAt,_that.modifi
 @JsonSerializable()
 
 class _ScanDocument extends ScanDocument {
-  const _ScanDocument({required this.id, required this.title, this.folderId, required this.createdAt, required this.modifiedAt, final  List<ScanPage> pages = const <ScanPage>[], this.isDeleted = false, this.deletedAt}): _pages = pages,super._();
+  const _ScanDocument({required this.id, required this.title, this.folderId, required this.createdAt, required this.modifiedAt, final  List<ScanPage> pages = const <ScanPage>[], this.isDeleted = false, this.deletedAt, this.ocrAttempted = false}): _pages = pages,super._();
   factory _ScanDocument.fromJson(Map<String, dynamic> json) => _$ScanDocumentFromJson(json);
 
 @override final  String id;
@@ -233,6 +237,10 @@ class _ScanDocument extends ScanDocument {
 
 @override@JsonKey() final  bool isDeleted;
 @override final  DateTime? deletedAt;
+/// True once text recognition has completed a clean pass, even if it
+/// found nothing. Distinguishes "no text on this page" from "not run
+/// yet", so the screen stops silently re-running Vision on every visit.
+@override@JsonKey() final  bool ocrAttempted;
 
 /// Create a copy of ScanDocument
 /// with the given fields replaced by the non-null parameter values.
@@ -247,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ScanDocument&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.modifiedAt, modifiedAt) || other.modifiedAt == modifiedAt)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ScanDocument&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.modifiedAt, modifiedAt) || other.modifiedAt == modifiedAt)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.ocrAttempted, ocrAttempted) || other.ocrAttempted == ocrAttempted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,folderId,createdAt,modifiedAt,const DeepCollectionEquality().hash(_pages),isDeleted,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,title,folderId,createdAt,modifiedAt,const DeepCollectionEquality().hash(_pages),isDeleted,deletedAt,ocrAttempted);
 
 @override
 String toString() {
-  return 'ScanDocument(id: $id, title: $title, folderId: $folderId, createdAt: $createdAt, modifiedAt: $modifiedAt, pages: $pages, isDeleted: $isDeleted, deletedAt: $deletedAt)';
+  return 'ScanDocument(id: $id, title: $title, folderId: $folderId, createdAt: $createdAt, modifiedAt: $modifiedAt, pages: $pages, isDeleted: $isDeleted, deletedAt: $deletedAt, ocrAttempted: $ocrAttempted)';
 }
 
 
@@ -267,7 +275,7 @@ abstract mixin class _$ScanDocumentCopyWith<$Res> implements $ScanDocumentCopyWi
   factory _$ScanDocumentCopyWith(_ScanDocument value, $Res Function(_ScanDocument) _then) = __$ScanDocumentCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String? folderId, DateTime createdAt, DateTime modifiedAt, List<ScanPage> pages, bool isDeleted, DateTime? deletedAt
+ String id, String title, String? folderId, DateTime createdAt, DateTime modifiedAt, List<ScanPage> pages, bool isDeleted, DateTime? deletedAt, bool ocrAttempted
 });
 
 
@@ -284,7 +292,7 @@ class __$ScanDocumentCopyWithImpl<$Res>
 
 /// Create a copy of ScanDocument
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? folderId = freezed,Object? createdAt = null,Object? modifiedAt = null,Object? pages = null,Object? isDeleted = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? folderId = freezed,Object? createdAt = null,Object? modifiedAt = null,Object? pages = null,Object? isDeleted = null,Object? deletedAt = freezed,Object? ocrAttempted = null,}) {
   return _then(_ScanDocument(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -294,7 +302,8 @@ as DateTime,modifiedAt: null == modifiedAt ? _self.modifiedAt : modifiedAt // ig
 as DateTime,pages: null == pages ? _self._pages : pages // ignore: cast_nullable_to_non_nullable
 as List<ScanPage>,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
 as bool,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,ocrAttempted: null == ocrAttempted ? _self.ocrAttempted : ocrAttempted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

@@ -65,6 +65,20 @@ dependencies:
   amplitude_flutter: ^4.7.1
   connectivity_plus: ^7.3.1
   archive: ^4.0.9
+  webview_flutter: ^4.10.0
+  webview_flutter_platform_interface: ^2.10.0
+  webview_flutter_wkwebview: ^3.18.4
+  firebase_core: ^4.2.0
+  firebase_messaging: ^16.0.3
+  http: ^1.2.2
+  retry: ^3.1.2
+  rxdart: ^0.28.0
+  shared_preferences: ^2.3.4
+  battery_plus: ^7.0.0
+  carrier_info: ^2.0.8
+  flutter_device_type: ^0.4.0
+  package_info_plus: ^9.0.0
+  sensors_plus: ^7.0.0
 
 dependency_overrides:
   # path_provider_foundation >=2.5.0 uses the experimental native-assets
@@ -75,6 +89,8 @@ dependency_overrides:
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to

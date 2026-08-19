@@ -327,7 +327,7 @@ class _LibraryContent extends ConsumerWidget {
                       folder: folder,
                       documentCount: count,
                       onTap: () => context.push('/folder/${folder.id}'),
-                    ).staggered(index),
+                    ).staggered(index.clamp(0, 8)),
                   );
                 },
               ),
@@ -362,7 +362,7 @@ class _DocumentsSliver extends ConsumerWidget {
               document: doc,
               onTap: () => context.push('/document/${doc.id}'),
               onLongPress: () => showDocumentActions(context, ref, doc),
-            ).staggered(index);
+            ).staggered(index.clamp(0, 8));
           },
         ),
       );
@@ -383,7 +383,7 @@ class _DocumentsSliver extends ConsumerWidget {
             document: doc,
             onTap: () => context.push('/document/${doc.id}'),
             onLongPress: () => showDocumentActions(context, ref, doc),
-          ).staggered(index);
+          ).staggered(index.clamp(0, 8));
         },
       ),
     );

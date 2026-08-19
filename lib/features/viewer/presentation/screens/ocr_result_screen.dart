@@ -84,7 +84,7 @@ class _OcrResultScreenState extends ConsumerState<OcrResultScreen> {
   void initState() {
     super.initState();
     final doc = ref.read(documentByIdProvider(widget.documentId));
-    if (doc != null && !doc.hasOcr) {
+    if (doc != null && !doc.hasOcr && !doc.ocrAttempted) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _runOcr());
     }
   }
@@ -148,14 +148,15 @@ class _OcrResultScreenState extends ConsumerState<OcrResultScreen> {
         child: _running
             ? const _OcrSkeleton()
             : !doc.hasOcr
-            ? _NoTextView(onRun: _runOcr)
+            ? _NoTextView(onRun: _runOcr, attempted: doc.ocrAttempted)
             : ListView.builder(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 itemCount: doc.pages.length,
                 itemBuilder: (context, index) {
                   final page = doc.pages[index];
-                  if (!page.hasOcr) return const SizedBox.shrink();
+                  // Pages without text keep their card (and edit button), so
+                  // clearing a page's text never strands it uneditable.
                   return Container(
                     margin: const EdgeInsets.only(bottom: AppSpacing.lg),
                     padding: const EdgeInsets.all(AppSpacing.lg),
@@ -192,10 +193,16 @@ class _OcrResultScreenState extends ConsumerState<OcrResultScreen> {
                           ],
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        SelectableText(
-                          page.ocrText,
-                          style: AppTypography.body(colors.textPrimary),
-                        ),
+                        if (page.hasOcr)
+                          SelectableText(
+                            page.ocrText,
+                            style: AppTypography.body(colors.textPrimary),
+                          )
+                        else
+                          Text(
+                            'No text on this page',
+                            style: AppTypography.body(colors.textSecondary),
+                          ),
                       ],
                     ),
                   );
@@ -237,9 +244,13 @@ class _OcrSkeleton extends StatelessWidget {
 }
 
 class _NoTextView extends StatelessWidget {
-  const _NoTextView({required this.onRun});
+  const _NoTextView({required this.onRun, this.attempted = false});
 
   final VoidCallback onRun;
+
+  /// Recognition has already finished a clean pass and found nothing, so the
+  /// copy confirms the outcome instead of implying the user still has to act.
+  final bool attempted;
 
   @override
   Widget build(BuildContext context) {
@@ -249,12 +260,16 @@ class _NoTextView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'No text recognized yet',
+            attempted ? 'No text found' : 'No text recognized yet',
             style: AppTypography.title(colors.textPrimary),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Run text recognition on this document\'s pages.',
+            attempted
+                ? 'These pages do not contain readable text. Scan again in '
+                      'better light, or try a different filter.'
+                : 'Run text recognition on this document\'s pages.',
+            textAlign: TextAlign.center,
             style: AppTypography.body(colors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.lg),

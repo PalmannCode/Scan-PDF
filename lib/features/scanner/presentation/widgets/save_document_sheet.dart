@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:scanpdf/app/theme/app_shapes.dart';
 import 'package:scanpdf/app/theme/app_spacing.dart';
@@ -15,6 +14,7 @@ import 'package:scanpdf/features/home/presentation/providers/folders_provider.da
 import 'package:scanpdf/features/scanner/presentation/providers/scan_saver_provider.dart';
 import 'package:scanpdf/features/scanner/presentation/providers/scan_session_provider.dart';
 import 'package:scanpdf/features/settings/presentation/providers/settings_provider.dart';
+import 'package:scanpdf/core/utils/file_name_formats.dart';
 
 /// Save flow (Jira §15): document name + destination folder. Documents
 /// are stored page-based and PDF-ready; export formats live in the
@@ -45,12 +45,7 @@ class _SaveSheetBodyState extends ConsumerState<_SaveSheetBody> {
   void initState() {
     super.initState();
     final pattern = ref.read(settingsProvider).defaultFileNameFormat;
-    String name;
-    try {
-      name = DateFormat(pattern).format(DateTime.now());
-    } catch (_) {
-      name = 'Scan ${DateFormat('yyyy-MM-dd HH.mm').format(DateTime.now())}';
-    }
+    final name = FileNameFormats.format(pattern, DateTime.now());
     _nameController = TextEditingController(text: name);
   }
 

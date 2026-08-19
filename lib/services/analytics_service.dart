@@ -37,10 +37,24 @@ class AnalyticsService {
   }
 
   Future<void> setUser(String? userId) async {
+    final previous = _userId;
     _userId = userId;
-    if (_ready && userId != null && userId.length >= 5) {
+    if (!_ready) return;
+    if (userId == null) {
+      // Only clear the native identity when an identified user actually goes
+      // away; an anonymous launch keeps its existing device id.
+      if (previous != null) await _client?.reset();
+    } else if (userId.length >= 5) {
       await _client?.setUserId(userId);
     }
+  }
+
+  /// Clears the Amplitude identity (userId and deviceId) so events recorded
+  /// after sign-out or account deletion start a fresh anonymous user instead
+  /// of being attributed to the previous account.
+  Future<void> reset() async {
+    _userId = null;
+    if (_ready) await _client?.reset();
   }
 
   void setSubscriptionStatus(bool active) {

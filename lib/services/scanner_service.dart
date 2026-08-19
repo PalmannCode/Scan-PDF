@@ -43,6 +43,19 @@ class ScannerService {
     var source = img.decodeImage(request.bytes);
     if (source == null) throw const FormatException('Unsupported image data');
     source = img.bakeOrientation(source);
+
+    final corners = normalizedCorners(request.corners);
+    if (corners != null) {
+      source = _rectify(source, corners);
+    }
+
+    if (request.rotationQuarters % 4 != 0) {
+      source = img.copyRotate(
+        source,
+        angle: 90.0 * (request.rotationQuarters % 4),
+      );
+    }
+
     final gutter = math.max(2, (source.width * 0.015).round());
     final mid = source.width ~/ 2;
     final left = img.copyCrop(

@@ -27,7 +27,7 @@ _ScanSettings _$ScanSettingsFromJson(Map<String, dynamic> json) =>
       ocrLanguageBundle: json['ocrLanguageBundle'] as String? ?? 'latin',
       defaultExportFormat: json['defaultExportFormat'] as String? ?? 'pdf',
       defaultFileNameFormat:
-          json['defaultFileNameFormat'] as String? ?? 'Scan yyyy-MM-dd HH.mm',
+          json['defaultFileNameFormat'] as String? ?? FileNameFormats.scan,
       appIcon: json['appIcon'] as String? ?? 'default',
       syncEnabled: json['syncEnabled'] as bool? ?? false,
       autoUploadEnabled: json['autoUploadEnabled'] as bool? ?? false,

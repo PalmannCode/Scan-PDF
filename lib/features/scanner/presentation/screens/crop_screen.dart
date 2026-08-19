@@ -32,6 +32,7 @@ class _CropScreenState extends ConsumerState<CropScreen> {
   /// Normalized corners TL, TR, BR, BL.
   late List<Offset> _corners;
   int? _dragging;
+  int _quarterTurns = 0;
 
   static const _defaultInset = 0.04;
 
@@ -48,14 +49,15 @@ class _CropScreenState extends ConsumerState<CropScreen> {
             Offset(c[6], c[7]),
           ]
         : _fullFrame();
+    _quarterTurns = page.rotationQuarters;
     _loadImage(page.tempPath);
   }
 
-  List<Offset> _fullFrame() => const [
-    Offset(_defaultInset, _defaultInset),
-    Offset(1 - _defaultInset, _defaultInset),
-    Offset(1 - _defaultInset, 1 - _defaultInset),
-    Offset(_defaultInset, 1 - _defaultInset),
+  List<Offset> _fullFrame() => [
+    const Offset(_defaultInset, _defaultInset),
+    const Offset(1 - _defaultInset, _defaultInset),
+    const Offset(1 - _defaultInset, 1 - _defaultInset),
+    const Offset(_defaultInset, 1 - _defaultInset),
   ];
 
   Future<void> _loadImage(String path) async {
@@ -105,10 +107,12 @@ class _CropScreenState extends ConsumerState<CropScreen> {
     final index = _dragging;
     if (index == null) return;
     setState(() {
-      _corners[index] = Offset(
+      final updated = List.of(_corners);
+      updated[index] = Offset(
         ((local.dx - rect.left) / rect.width).clamp(0, 1),
         ((local.dy - rect.top) / rect.height).clamp(0, 1),
       );
+      _corners = updated;
     });
   }
 
@@ -164,27 +168,30 @@ class _CropScreenState extends ConsumerState<CropScreen> {
                   ? const SizedBox.shrink()
                   : Padding(
                       padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final rect = _displayRect(constraints.biggest);
-                          return GestureDetector(
-                            onPanStart: (d) =>
-                                _onPanStart(d.localPosition, rect),
-                            onPanUpdate: (d) =>
-                                _onPanUpdate(d.localPosition, rect),
-                            onPanEnd: (_) => setState(() => _dragging = null),
-                            child: CustomPaint(
-                              size: constraints.biggest,
-                              painter: _CropPainter(
-                                image: _image!,
-                                rect: rect,
-                                corners: _corners,
-                                accent: colors.accent,
-                                dragging: _dragging,
+                      child: RotatedBox(
+                        quarterTurns: _quarterTurns,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final rect = _displayRect(constraints.biggest);
+                            return GestureDetector(
+                              onPanStart: (d) =>
+                                  _onPanStart(d.localPosition, rect),
+                              onPanUpdate: (d) =>
+                                  _onPanUpdate(d.localPosition, rect),
+                              onPanEnd: (_) => setState(() => _dragging = null),
+                              child: CustomPaint(
+                                size: constraints.biggest,
+                                painter: _CropPainter(
+                                  image: _image!,
+                                  rect: rect,
+                                  corners: _corners,
+                                  accent: colors.accent,
+                                  dragging: _dragging,
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                     ),
             ),

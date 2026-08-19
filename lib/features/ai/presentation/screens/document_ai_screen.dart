@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -38,6 +39,7 @@ class _DocumentAiScreenState extends ConsumerState<DocumentAiScreen> {
   Map<String, dynamic>? _result;
   bool _working = false;
   bool _privacyAccepted = false;
+  bool _limitReached = false;
   String? _error;
 
   @override
@@ -54,22 +56,55 @@ class _DocumentAiScreenState extends ConsumerState<DocumentAiScreen> {
   }
 
   Future<void> _run() async {
-    if (ref.read(authUserProvider).value == null) {
+    // Every early exit below must leave a visible trace. Previously several of
+    // them returned in silence, so the button looked dead even though the
+    // handler had run.
+    setState(() {
+      _working = true;
+      _error = null;
+      _limitReached = false;
+    });
+
+    // Await the first auth emission: a synchronous read of the stream provider
+    // is still AsyncLoading on the first tap, so a signed-in user would be
+    // bounced to /account instead of running the tool.
+    // Bounded: fall back to the synchronous session rather than spinning
+    // forever if the auth stream is slow to produce its first value.
+    final user = await ref
+        .read(authUserProvider.future)
+        .timeout(
+          const Duration(seconds: 8),
+          onTimeout: () => ref.read(authServiceProvider).currentUser,
+        );
+    if (!mounted) return;
+    if (user == null) {
+      setState(() {
+        _working = false;
+        _error = 'Sign in to use AI tools. Opening your account…';
+      });
       context.push('/account');
       return;
     }
     final initialDocument = ref.read(documentByIdProvider(widget.documentId));
-    if (initialDocument == null) return;
+    if (initialDocument == null) {
+      setState(() {
+        _working = false;
+        _error = 'This document is no longer available.';
+      });
+      return;
+    }
     if (!initialDocument.hasOcr) {
-      setState(() => _working = true);
+      // Recognition can take many seconds; the button already reads
+      // "Processing…" so the wait is attributable.
       await ref.read(scanSaverProvider).runOcr(initialDocument.id);
-      if (mounted) setState(() => _working = false);
+      if (!mounted) return;
     }
     final document = ref.read(documentByIdProvider(widget.documentId));
     if (document == null || !document.hasOcr) {
-      if (mounted) {
-        setState(() => _error = 'No readable text was found in this document.');
-      }
+      setState(() {
+        _working = false;
+        _error = 'No readable text was found in this document.';
+      });
       return;
     }
     if (!mounted) return;
@@ -82,13 +117,13 @@ class _DocumentAiScreenState extends ConsumerState<DocumentAiScreen> {
         cancelLabel: 'Cancel',
         confirmLabel: 'Continue',
       );
-      if (!accepted) return;
+      if (!accepted) {
+        if (mounted) setState(() => _working = false);
+        return;
+      }
       _privacyAccepted = true;
     }
-    setState(() {
-      _working = true;
-      _error = null;
-    });
+    if (!mounted) return;
     try {
       final response = await ref
           .read(aiServiceProvider)
@@ -105,13 +140,14 @@ class _DocumentAiScreenState extends ConsumerState<DocumentAiScreen> {
       if (mounted) setState(() => _result = response.result);
     } catch (error) {
       if (mounted) {
-        setState(
-          () => _error = userMessageFor(
+        setState(() {
+          _limitReached = error is AiLimitReachedError;
+          _error = userMessageFor(
             error,
             fallback:
                 'The AI request could not be completed. Check your connection and try again.',
-          ),
-        );
+          );
+        });
       }
     } finally {
       if (mounted) setState(() => _working = false);
@@ -203,9 +239,15 @@ class _DocumentAiScreenState extends ConsumerState<DocumentAiScreen> {
             FilledButton.icon(
               onPressed: _working ? null : _run,
               icon: _working
-                  ? const SizedBox.square(
+                  ? SizedBox.square(
                       dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      // Without a colour this falls back to colorScheme.primary
+                      // (deep indigo), which is 2.7:1 on the button fill in the
+                      // dark theme — the busy state disappears.
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colors.textPrimary,
+                      ),
                     )
                   : const Icon(Icons.auto_awesome_rounded),
               label: Text(_working ? 'Processing…' : 'Run ${_action.name}'),
@@ -213,6 +255,13 @@ class _DocumentAiScreenState extends ConsumerState<DocumentAiScreen> {
             if (_error != null) ...[
               const SizedBox(height: AppSpacing.lg),
               Text(_error!, style: AppTypography.body(colors.danger)),
+              if (_limitReached) ...[
+                const SizedBox(height: AppSpacing.sm),
+                FilledButton(
+                  onPressed: () => context.push('/paywall'),
+                  child: const Text('Upgrade to Plus'),
+                ),
+              ],
             ],
             if (_result != null) ...[
               const SizedBox(height: AppSpacing.xl),

@@ -39,15 +39,24 @@ class _ToolsBody extends ConsumerWidget {
     action();
   }
 
+  /// Closes the sheet, asks which document to act on, then runs [action].
+  ///
+  /// The sheet's own BuildContext is unmounted as soon as the pop animation
+  /// finishes, which happens long before the user picks a document. Anything
+  /// awaited past that point therefore sees `context.mounted == false`, so a
+  /// closure that navigated through the sheet's context silently did nothing.
+  /// The router is captured up front and handed to [action] instead.
   Future<void> _withDocument(
     BuildContext context,
     WidgetRef ref,
     String title,
-    Future<void> Function(ScanDocument doc) action,
+    Future<void> Function(GoRouter router, ScanDocument doc) action,
   ) async {
+    final router = GoRouter.of(context);
+    final pickerContext = Navigator.of(context, rootNavigator: true).context;
     Navigator.of(context).pop();
-    final doc = await pickDocument(context, ref, title: title);
-    if (doc != null) await action(doc);
+    final doc = await pickDocument(pickerContext, ref, title: title);
+    if (doc != null) await action(router, doc);
   }
 
   @override
@@ -181,34 +190,46 @@ class _ToolsBody extends ConsumerWidget {
           _Tool(
             icon: Icons.photo_library_outlined,
             label: 'Photos',
-            onTap: () => _closeThen(context, () async {
-              final added = await ref
-                  .read(importControllerProvider)
-                  .importPhotos();
-              if (added > 0 && context.mounted) {
-                context.push('/review');
-              }
-            }),
+            onTap: () {
+              // The OS picker takes seconds; by the time it returns, this
+              // sheet's context is gone and the `context.mounted` guard would
+              // swallow the navigation. Capture the router before popping.
+              final router = GoRouter.of(context);
+              _closeThen(context, () async {
+                final added = await ref
+                    .read(importControllerProvider)
+                    .importPhotos();
+                if (added > 0) router.push('/review');
+              });
+            },
           ),
           _Tool(
             icon: Icons.folder_open_outlined,
             label: 'Files',
-            onTap: () => _closeThen(context, () async {
-              final added = await ref
-                  .read(importControllerProvider)
-                  .importFiles();
-              if (added > 0 && context.mounted) {
-                context.push('/review');
-              }
-            }),
+            onTap: () {
+              // The OS picker takes seconds; by the time it returns, this
+              // sheet's context is gone and the `context.mounted` guard would
+              // swallow the navigation. Capture the router before popping.
+              final router = GoRouter.of(context);
+              _closeThen(context, () async {
+                final added = await ref
+                    .read(importControllerProvider)
+                    .importFiles();
+                if (added > 0) router.push('/review');
+              });
+            },
           ),
         ]),
         ...section('EXPORT', [
           _Tool(
             icon: Icons.picture_as_pdf_outlined,
             label: 'To PDF',
-            onTap: () =>
-                _withDocument(context, ref, 'Export to PDF', export.sharePdf),
+            onTap: () => _withDocument(
+              context,
+              ref,
+              'Export to PDF',
+              (_, doc) => export.sharePdf(doc),
+            ),
           ),
           _Tool(
             icon: Icons.image_outlined,
@@ -217,19 +238,20 @@ class _ToolsBody extends ConsumerWidget {
               context,
               ref,
               'Export to images',
-              (doc) => export.shareImages(doc, ExportFormat.jpg),
+              (_, doc) => export.shareImages(doc, ExportFormat.jpg),
             ),
           ),
           _Tool(
             icon: Icons.notes_rounded,
             label: 'To Text',
             onTap: () => _withDocument(context, ref, 'Export recognized text', (
+              router,
               doc,
             ) async {
               if (doc.hasOcr) {
                 await export.shareTxt(doc);
-              } else if (context.mounted) {
-                context.push('/document/${doc.id}/text');
+              } else {
+                router.push('/document/${doc.id}/text');
               }
             }),
           ),
@@ -242,7 +264,12 @@ class _ToolsBody extends ConsumerWidget {
                 _closeThen(context, () => context.push('/paywall'));
                 return;
               }
-              _withDocument(context, ref, 'Export to Word', export.shareWord);
+              _withDocument(
+                context,
+                ref,
+                'Export to Word',
+                (_, doc) => export.shareWord(doc),
+              );
             },
           ),
           _Tool(
@@ -258,7 +285,7 @@ class _ToolsBody extends ConsumerWidget {
                 context,
                 ref,
                 'Export to PowerPoint',
-                export.sharePowerPoint,
+                (_, doc) => export.sharePowerPoint(doc),
               );
             },
           ),
@@ -267,69 +294,66 @@ class _ToolsBody extends ConsumerWidget {
           _Tool(
             icon: Icons.draw_outlined,
             label: 'Sign',
-            onTap: () =>
-                _withDocument(context, ref, 'Sign a document', (doc) async {
-                  if (context.mounted) {
-                    context.push('/document/${doc.id}/sign');
-                  }
-                }),
+            onTap: () => _withDocument(context, ref, 'Sign a document', (
+              router,
+              doc,
+            ) async {
+              router.push('/document/${doc.id}/sign');
+            }),
           ),
           _Tool(
             icon: Icons.merge_rounded,
             label: 'Merge',
-            onTap: () =>
-                _withDocument(context, ref, 'Merge documents', (doc) async {
-                  if (context.mounted) {
-                    context.push('/document/${doc.id}');
-                  }
-                }),
+            onTap: () => _withDocument(context, ref, 'Merge documents', (
+              router,
+              doc,
+            ) async {
+              router.push('/document/${doc.id}');
+            }),
           ),
           _Tool(
             icon: Icons.content_cut_rounded,
             label: 'Extract',
-            onTap: () =>
-                _withDocument(context, ref, 'Extract pages from…', (doc) async {
-                  if (context.mounted) {
-                    context.push('/document/${doc.id}/tools');
-                  }
-                }),
+            onTap: () => _withDocument(context, ref, 'Extract pages from…', (
+              router,
+              doc,
+            ) async {
+              router.push('/document/${doc.id}/tools');
+            }),
           ),
           _Tool(
             icon: Icons.reorder_rounded,
             label: 'Reorder',
-            onTap: () =>
-                _withDocument(context, ref, 'Reorder pages in…', (doc) async {
-                  if (context.mounted) {
-                    context.push('/document/${doc.id}/pages');
-                  }
-                }),
+            onTap: () => _withDocument(context, ref, 'Reorder pages in…', (
+              router,
+              doc,
+            ) async {
+              router.push('/document/${doc.id}/pages');
+            }),
           ),
           _Tool(
             icon: Icons.compress_rounded,
             label: 'Compress',
-            onTap: () => _withDocument(context, ref, 'Compress…', (doc) async {
-              if (context.mounted) {
-                context.push('/document/${doc.id}/tools');
-              }
-            }),
+            onTap: () =>
+                _withDocument(context, ref, 'Compress…', (router, doc) async {
+                  router.push('/document/${doc.id}/tools');
+                }),
           ),
           _Tool(
             icon: Icons.branding_watermark_outlined,
             label: 'Watermark',
-            onTap: () => _withDocument(context, ref, 'Watermark…', (doc) async {
-              if (context.mounted) {
-                context.push('/document/${doc.id}/tools');
-              }
-            }),
+            onTap: () =>
+                _withDocument(context, ref, 'Watermark…', (router, doc) async {
+                  router.push('/document/${doc.id}/tools');
+                }),
           ),
           _Tool(
             icon: Icons.lock_outline_rounded,
             label: 'Lock PDF',
-            onTap: () => _withDocument(context, ref, 'Lock…', (doc) async {
-              if (context.mounted) {
-                context.push('/document/${doc.id}/tools');
-              }
-            }),
+            onTap: () =>
+                _withDocument(context, ref, 'Lock…', (router, doc) async {
+                  router.push('/document/${doc.id}/tools');
+                }),
           ),
         ]),
         ...section('UTILITIES', [
@@ -340,7 +364,7 @@ class _ToolsBody extends ConsumerWidget {
               context,
               ref,
               'Print a document',
-              export.printDocument,
+              (_, doc) => export.printDocument(doc),
             ),
           ),
           _Tool(
@@ -380,25 +404,30 @@ class _ToolsBody extends ConsumerWidget {
           _Tool(
             icon: Icons.question_answer_outlined,
             label: 'Ask AI',
-            onTap: () =>
-                _withDocument(context, ref, 'Ask AI about…', (doc) async {
-                  if (context.mounted) context.push('/document/${doc.id}/ai');
-                }),
+            onTap: () => _withDocument(context, ref, 'Ask AI about…', (
+              router,
+              doc,
+            ) async {
+              router.push('/document/${doc.id}/ai');
+            }),
           ),
           _Tool(
             icon: Icons.summarize_outlined,
             label: 'AI Summary',
-            onTap: () => _withDocument(context, ref, 'Summarize…', (doc) async {
-              if (context.mounted) context.push('/document/${doc.id}/ai');
-            }),
+            onTap: () =>
+                _withDocument(context, ref, 'Summarize…', (router, doc) async {
+                  router.push('/document/${doc.id}/ai');
+                }),
           ),
           _Tool(
             icon: Icons.data_object_rounded,
             label: 'AI Extract',
-            onTap: () =>
-                _withDocument(context, ref, 'Extract from…', (doc) async {
-                  if (context.mounted) context.push('/document/${doc.id}/ai');
-                }),
+            onTap: () => _withDocument(context, ref, 'Extract from…', (
+              router,
+              doc,
+            ) async {
+              router.push('/document/${doc.id}/ai');
+            }),
           ),
         ]),
         const SizedBox(height: AppSpacing.xxl),

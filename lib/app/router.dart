@@ -80,8 +80,17 @@ GoRouter buildRouter() {
       final done = prefs.get('onboarding_done') == 'true';
       final path = state.matchedLocation;
       // The event route is redirect-exempt: the ASC deep link must open
-      // on a fresh install even before onboarding.
-      if (!done && path != '/onboarding' && path != '/event') {
+      // on a fresh install even before onboarding. Its capture chain
+      // (camera -> review -> crop) is exempt with it so the event CTA can
+      // complete a scan — before onboarding these routes are reachable
+      // only from /event, and the post-save go('/') still lands the user
+      // on onboarding.
+      final eventExempt =
+          path == '/event' ||
+          path == '/camera' ||
+          path == '/review' ||
+          path.startsWith('/crop/');
+      if (!done && path != '/onboarding' && !eventExempt) {
         return '/onboarding';
       }
       if (done && path == '/onboarding') return '/';

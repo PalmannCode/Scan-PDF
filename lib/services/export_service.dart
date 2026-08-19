@@ -90,11 +90,17 @@ class ExportService {
       _ => 84,
     };
     final images = <Uint8List>[];
-    for (final page in document.pages) {
+    final pageText = <String>[];
+    final unreadable = <int>[];
+    for (var index = 0; index < document.pages.length; index++) {
+      final page = document.pages[index];
       final decoded = img.decodeImage(
         await File(resolvePath(page.processedFileName)).readAsBytes(),
       );
-      if (decoded == null) continue;
+      if (decoded == null) {
+        unreadable.add(index + 1);
+        continue;
+      }
       final longest = decoded.width > decoded.height
           ? decoded.width
           : decoded.height;
@@ -107,12 +113,19 @@ class ExportService {
             )
           : decoded;
       images.add(img.encodeJpg(resized, quality: quality));
+      pageText.add(page.ocrText);
+    }
+    // Dropping a page silently would also shift every later page's text layer
+    // onto the wrong page, so a damaged page fails the export instead.
+    if (unreadable.isNotEmpty) {
+      throw StateError(
+        'Page ${unreadable.join(', ')} could not be read, so this document '
+        'cannot be compressed. Re-scan or delete the page and try again.',
+      );
     }
     final bytes = await pdfService.buildPdf(
       images,
-      searchableText: settings.createSearchablePdf
-          ? [for (final page in document.pages) page.ocrText]
-          : null,
+      searchableText: settings.createSearchablePdf ? pageText : null,
     );
     final dir = await _exportDir();
     final file = File(
@@ -194,6 +207,7 @@ class ExportService {
       assert(format == ExportFormat.jpg || format == ExportFormat.png);
       final dir = await _exportDir();
       final files = <XFile>[];
+      final unreadable = <int>[];
       for (var i = 0; i < document.pages.length; i++) {
         final source = File(resolvePath(document.pages[i].processedFileName));
         final target =
@@ -202,14 +216,37 @@ class ExportService {
           await source.copy(target);
         } else {
           final decoded = img.decodeImage(await source.readAsBytes());
-          if (decoded == null) continue;
+          if (decoded == null) {
+            unreadable.add(i + 1);
+            continue;
+          }
           await File(target).writeAsBytes(img.encodePng(decoded), flush: true);
         }
         files.add(XFile(target));
       }
+      // Exporting a silently short set looks like a successful export.
+      if (unreadable.isNotEmpty) {
+        throw StateError(
+          'Page ${unreadable.join(', ')} could not be read, so the export is '
+          'incomplete. Re-scan or delete the page and try again.',
+        );
+      }
       if (files.isEmpty) return;
       await SharePlus.instance.share(_shareParams(document, files));
     });
+  }
+
+  /// Shares using the attachment format chosen in Settings > Email template.
+  /// Values match the dropdown there: pdf, jpg, png.
+  Future<void> shareDefault(ScanDocument document) {
+    switch (settings.emailAttachmentFormat) {
+      case 'jpg':
+        return shareImages(document, ExportFormat.jpg);
+      case 'png':
+        return shareImages(document, ExportFormat.png);
+      default:
+        return sharePdf(document);
+    }
   }
 
   Future<void> shareTxt(ScanDocument document) async {

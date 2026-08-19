@@ -92,14 +92,24 @@ class FilterChipsRow extends StatelessWidget {
     super.key,
     required this.selected,
     required this.onSelected,
+    this.onShell = false,
   });
 
   final ScanFilter selected;
   final ValueChanged<ScanFilter> onSelected;
 
+  /// True on the black camera background. On the paper review surface the
+  /// translucent-white fill and white70 label vanish into the sheet, so the
+  /// paper tokens are used there instead.
+  final bool onShell;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final idleFill = onShell
+        ? Colors.white.withValues(alpha: 0.12)
+        : colors.toolCard;
+    final idleLabel = onShell ? Colors.white70 : colors.textPrimary;
     return SizedBox(
       height: 44,
       child: ListView.builder(
@@ -121,15 +131,13 @@ class FilterChipsRow extends StatelessWidget {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: active
-                      ? colors.accent
-                      : Colors.white.withValues(alpha: 0.12),
+                  color: active ? colors.accent : idleFill,
                   borderRadius: AppShapes.pillRadius,
                 ),
                 child: Text(
                   filter.label,
                   style: AppTypography.bodyMedium(
-                    active ? Colors.white : Colors.white70,
+                    active ? Colors.white : idleLabel,
                   ),
                 ),
               ),
@@ -141,7 +149,7 @@ class FilterChipsRow extends StatelessWidget {
   }
 }
 
-class CameraModeBar extends StatelessWidget {
+class CameraModeBar extends StatefulWidget {
   const CameraModeBar({
     super.key,
     required this.mode,
@@ -156,11 +164,57 @@ class CameraModeBar extends StatelessWidget {
   final VoidCallback onFilterTap;
 
   @override
+  State<CameraModeBar> createState() => _CameraModeBarState();
+}
+
+class _CameraModeBarState extends State<CameraModeBar> {
+  final ScrollController _controller = ScrollController();
+  final Map<CameraMode, GlobalKey> _keys = {
+    for (final m in CameraMode.values) m: GlobalKey(),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    // The default mode (Document) sits mid-list, so without this the camera
+    // opens showing unrelated modes and no visible selection.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _revealSelected());
+  }
+
+  @override
+  void didUpdateWidget(CameraModeBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mode != widget.mode) _revealSelected();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _revealSelected() {
+    final context = _keys[widget.mode]?.currentContext;
+    if (context == null || !_controller.hasClients) return;
+    Scrollable.ensureVisible(
+      context,
+      alignment: 0.5,
+      duration: AppMotion.standard,
+      curve: AppMotion.enter,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final mode = widget.mode;
+    final filter = widget.filter;
+    final onMode = widget.onMode;
+    final onFilterTap = widget.onFilterTap;
     return SizedBox(
       height: 52,
       child: ListView(
+        controller: _controller,
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -197,6 +251,7 @@ class CameraModeBar extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           for (final m in CameraMode.values)
             Padding(
+              key: _keys[m],
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
               child: PressableTap(
                 style: PressStyle.dim,

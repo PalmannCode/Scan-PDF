@@ -39,6 +39,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
   // Placement state (normalized to the page image box).
   Offset _center = const Offset(0.5, 0.72);
   double _widthFraction = 0.34;
+  double? _signatureAspect;
   Offset? _dragStartCenter;
   double _scaleStartWidth = 0.34;
   bool _applying = false;
@@ -51,7 +52,26 @@ class _SignScreenState extends ConsumerState<SignScreen> {
   Future<void> _useDrawn() async {
     final png = await _renderSignature();
     if (png == null) return;
-    setState(() => _signaturePng = png);
+    await _setSignature(png);
+  }
+
+  /// Stores the signature bitmap together with its aspect ratio so the
+  /// placement preview can be laid out with the exact geometry the bake in
+  /// [ViewerActions.applySignature] uses.
+  Future<void> _setSignature(Uint8List png) async {
+    final double aspect;
+    try {
+      final decoded = await decodeImageFromList(png);
+      aspect = decoded.height / decoded.width;
+      decoded.dispose();
+    } catch (_) {
+      return; // Undecodable bytes: the bake could not composite them either.
+    }
+    if (!mounted) return;
+    setState(() {
+      _signaturePng = png;
+      _signatureAspect = aspect;
+    });
   }
 
   Future<void> _saveDrawnForReuse() async {
@@ -77,7 +97,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked == null) return;
     final bytes = await picked.readAsBytes();
-    if (mounted) setState(() => _signaturePng = bytes);
+    await _setSignature(bytes);
   }
 
   Future<void> _apply() async {
@@ -104,6 +124,24 @@ class _SignScreenState extends ConsumerState<SignScreen> {
       if (mounted) setState(() => _applying = false);
     }
   }
+
+  /// Shared placement math, mirroring `_bakeSignatureSync` in
+  /// viewer_actions_provider.dart: the bake composites the signature centered
+  /// at (pageWidth * centerX, pageHeight * centerY), so the center must stay
+  /// at least half the signature's extent away from every edge or the baked
+  /// signature gets clipped off the page.
+  Offset _clampCenter(Offset center, Size box) {
+    final halfWidth = _widthFraction / 2;
+    final halfHeight =
+        _widthFraction * (_signatureAspect ?? 1) * box.width / box.height / 2;
+    return Offset(
+      _clampAxis(center.dx, halfWidth),
+      _clampAxis(center.dy, halfHeight),
+    );
+  }
+
+  double _clampAxis(double value, double half) =>
+      half >= 0.5 ? 0.5 : value.clamp(half, 1 - half);
 
   @override
   Widget build(BuildContext context) {
@@ -302,7 +340,7 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                         final png = await ref
                             .read(signatureStoreProvider)
                             .read(signature);
-                        setState(() => _signaturePng = png);
+                        await _setSignature(png);
                       },
                       onLongPress: () async {
                         await ref
@@ -318,15 +356,31 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                         ),
                         child: Column(
                           children: [
-                            Image.file(
-                              File(
-                                ref.read(resolvePathProvider)(
-                                  signature.fileName,
+                            // SignatureRenderer bakes fixed navy ink onto a
+                            // transparent PNG, so the thumbnail vanishes on
+                            // the dark-theme tool card. Preview it on the same
+                            // white plate the page bake effectively gives it,
+                            // matching the saved-signatures settings screen.
+                            ClipRRect(
+                              borderRadius: AppShapes.thumbnailRadius,
+                              child: ColoredBox(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.xs,
+                                  ),
+                                  child: Image.file(
+                                    File(
+                                      ref.read(resolvePathProvider)(
+                                        signature.fileName,
+                                      ),
+                                    ),
+                                    height: 24,
+                                    errorBuilder: (context, _, _) =>
+                                        const SizedBox(width: 24, height: 24),
+                                  ),
                                 ),
                               ),
-                              height: 24,
-                              errorBuilder: (context, _, _) =>
-                                  const SizedBox(width: 24, height: 24),
                             ),
                             Text(
                               signature.name,
@@ -366,7 +420,14 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                   Positioned.fill(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
+                        // The page image aspect-fits these constraints, so
+                        // `box` is the fitted page rect: normalized
+                        // coordinates here map 1:1 onto the baked bitmap.
                         final box = constraints.biggest;
+                        if (box.isEmpty) return const SizedBox.shrink();
+                        _center = _clampCenter(_center, box);
+                        final sigWidth = box.width * _widthFraction;
+                        final sigHeight = sigWidth * (_signatureAspect ?? 1);
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onScaleStart: (_) {
@@ -375,27 +436,30 @@ class _SignScreenState extends ConsumerState<SignScreen> {
                           },
                           onScaleUpdate: (details) => setState(() {
                             final start = _dragStartCenter ?? _center;
-                            _center = Offset(
-                              (start.dx +
-                                      details.focalPointDelta.dx / box.width)
-                                  .clamp(0.05, 0.95),
-                              (start.dy +
-                                      details.focalPointDelta.dy / box.height)
-                                  .clamp(0.05, 0.95),
-                            );
-                            _dragStartCenter = _center;
                             _widthFraction = (_scaleStartWidth * details.scale)
                                 .clamp(0.1, 0.85);
+                            _center = _clampCenter(
+                              Offset(
+                                start.dx +
+                                    details.focalPointDelta.dx / box.width,
+                                start.dy +
+                                    details.focalPointDelta.dy / box.height,
+                              ),
+                              box,
+                            );
+                            _dragStartCenter = _center;
                           }),
-                          child: Align(
-                            alignment: Alignment(
-                              _center.dx * 2 - 1,
-                              _center.dy * 2 - 1,
-                            ),
-                            child: SizedBox(
-                              width: box.width * _widthFraction,
-                              child: Image.memory(_signaturePng!),
-                            ),
+                          child: Stack(
+                            children: [
+                              // Same mapping as the bake: the signature's
+                              // center sits at (width * cx, height * cy).
+                              Positioned(
+                                left: box.width * _center.dx - sigWidth / 2,
+                                top: box.height * _center.dy - sigHeight / 2,
+                                width: sigWidth,
+                                child: Image.memory(_signaturePng!),
+                              ),
+                            ],
                           ),
                         );
                       },

@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:scanpdf/shared/models/enums.dart';
+import 'package:scanpdf/core/utils/file_name_formats.dart';
 
 part 'scan_settings.freezed.dart';
 part 'scan_settings.g.dart';
@@ -20,7 +21,7 @@ abstract class ScanSettings with _$ScanSettings {
     @Default(false) bool autoCaptureEnabled,
     @Default('latin') String ocrLanguageBundle,
     @Default('pdf') String defaultExportFormat,
-    @Default('Scan yyyy-MM-dd HH.mm') String defaultFileNameFormat,
+    @Default(FileNameFormats.scan) String defaultFileNameFormat,
     @Default('default') String appIcon,
     @Default(false) bool syncEnabled,
     @Default(false) bool autoUploadEnabled,

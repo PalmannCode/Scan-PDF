@@ -5,13 +5,22 @@ import 'dart:typed_data';
 import 'package:hive/hive.dart';
 
 import 'package:scanpdf/features/home/domain/repositories/document_repository.dart';
+import 'package:scanpdf/services/deletion_log.dart';
 import 'package:scanpdf/shared/models/scan_document.dart';
 
 class DocumentRepositoryImpl implements DocumentRepository {
-  DocumentRepositoryImpl({required this.box, required this.resolvePath});
+  DocumentRepositoryImpl({
+    required this.box,
+    required this.resolvePath,
+    this.deletionLog,
+  });
 
   final Box<String> box;
   final String Function(String relative) resolvePath;
+
+  /// Records permanent deletions so cloud sync does not restore them.
+  /// Null in local-only contexts (tests, guest use without a backend).
+  final DeletionLog? deletionLog;
 
   @override
   List<ScanDocument> getAll() {
@@ -101,6 +110,9 @@ class DocumentRepositoryImpl implements DocumentRepository {
       await deletePageFiles(page.id);
     }
     await box.delete(id);
+    // Tombstone before the box write is observable, so a sync racing this
+    // deletion cannot re-download the document it just lost locally.
+    await deletionLog?.recordDocument(id);
   }
 
   @override

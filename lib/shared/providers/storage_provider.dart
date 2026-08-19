@@ -2,6 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:scanpdf/services/app_review_service.dart';
+import 'package:scanpdf/services/deletion_log.dart';
 import 'package:scanpdf/services/export_service.dart';
 import 'package:scanpdf/services/ocr_service.dart';
 import 'package:scanpdf/services/pdf_service.dart';
@@ -38,6 +39,9 @@ Box<String> foldersBox(Ref ref) => Hive.box<String>(HiveBoxes.folders);
 
 @Riverpod(keepAlive: true)
 Box<String> prefsBox(Ref ref) => Hive.box<String>(HiveBoxes.prefs);
+
+@Riverpod(keepAlive: true)
+DeletionLog deletionLog(Ref ref) => DeletionLog(ref.watch(prefsBoxProvider));
 
 @Riverpod(keepAlive: true)
 ScannerService scannerService(Ref ref) => const ScannerService();

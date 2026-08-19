@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:scanpdf/config/app_config.dart';
 import 'package:scanpdf/features/home/domain/repositories/document_repository.dart';
 import 'package:scanpdf/features/home/domain/repositories/folder_repository.dart';
+import 'package:scanpdf/services/deletion_log.dart';
 import 'package:scanpdf/services/pdf_service.dart';
 import 'package:scanpdf/shared/models/scan_document.dart';
 import 'package:scanpdf/shared/models/enums.dart';
@@ -34,12 +35,26 @@ class CloudSyncService {
     required this.folders,
     required this.pdf,
     required this.resolvePath,
+    this.deletionLog,
+    this.readLastSyncedUserId,
+    this.writeLastSyncedUserId,
   });
 
   final DocumentRepository documents;
   final FolderRepository folders;
   final PdfService pdf;
   final String Function(String) resolvePath;
+
+  /// Permanent deletions made on this device. Without it, `restoreNewerRemoteItems`
+  /// cannot tell "deleted by the user" from "never seen on this device".
+  final DeletionLog? deletionLog;
+
+  /// Reads the account id this library was last synced under; null when the
+  /// library has never been synced from this device.
+  final String? Function()? readLastSyncedUserId;
+
+  /// Persists the account id the library is being synced under.
+  final Future<void> Function(String userId)? writeLastSyncedUserId;
 
   SupabaseClient get _client {
     if (!AppConfig.hasSupabase || !BackendRuntime.supabaseReady) {
@@ -61,9 +76,27 @@ class CloudSyncService {
     }
   }
 
+  /// Refuses to touch remote state when this device's library was last
+  /// synced under a different account — otherwise the previous user's
+  /// documents would be uploaded into the new account and both libraries
+  /// merged on-device. Records the owner on first sync.
+  Future<void> _claimLibraryOwnership(String userId) async {
+    final lastSyncedUserId = readLastSyncedUserId?.call();
+    if (lastSyncedUserId != null && lastSyncedUserId != userId) {
+      throw StateError(
+        'This library was last synced with a different account. Sign back in '
+        'with that account to sync these documents.',
+      );
+    }
+    if (lastSyncedUserId == null) {
+      await writeLastSyncedUserId?.call(userId);
+    }
+  }
+
   Future<SyncSummary> syncLibrary(ScanSettings settings) async {
     await _requireNetwork();
     final userId = _userId;
+    await _claimLibraryOwnership(userId);
     final remoteSettings = await _client
         .from('user_settings')
         .select()
@@ -131,7 +164,32 @@ class CloudSyncService {
             settings.createSearchablePdf,
       );
     }
-    final localFolders = folders.getAll();
+    // Push deletions before anything else: uploading first would re-create
+    // rows this device already destroyed.
+    await purgeRemoteDeletions();
+    // Never blindly overwrite the cloud: upload only what this device changed
+    // after the remote copy. Anything newer remotely is pulled by
+    // restoreNewerRemoteItems below instead.
+    final remoteFolderTimes = <String, DateTime>{};
+    for (final row in await _client.from('folders').select('id, updated_at')) {
+      remoteFolderTimes[row['id'] as String] = DateTime.parse(
+        row['updated_at'] as String,
+      );
+    }
+    final remoteDocumentTimes = <String, DateTime>{};
+    final remoteDocumentOcr = <String, String>{};
+    for (final row
+        in await _client
+            .from('documents')
+            .select('id, updated_at, full_ocr_text')) {
+      final id = row['id'] as String;
+      remoteDocumentTimes[id] = DateTime.parse(row['updated_at'] as String);
+      remoteDocumentOcr[id] = row['full_ocr_text'] as String? ?? '';
+    }
+    final localFolders = folders.getAll().where((folder) {
+      final remote = remoteFolderTimes[folder.id];
+      return remote == null || folder.modifiedAt.isAfter(remote);
+    }).toList();
     if (localFolders.isNotEmpty) {
       await _client.from('folders').upsert([
         for (final folder in localFolders)
@@ -146,6 +204,20 @@ class CloudSyncService {
     }
     var uploaded = 0;
     for (final document in documents.getAll()) {
+      final remote = remoteDocumentTimes[document.id];
+      if (remote != null && !document.modifiedAt.isAfter(remote)) {
+        // Remote is strictly newer: restoreNewerRemoteItems pulls it below
+        // instead of this device overwriting it.
+        if (document.modifiedAt.isBefore(remote)) continue;
+        // Equal timestamps: text recognition merges page text without bumping
+        // modifiedAt, so the remote copy can be a pre-OCR snapshot of this very
+        // document. Only fill in that gap — text appearing where there was
+        // none. Uploading on any difference would let a stale device overwrite
+        // newer cloud text, and since neither side's clock moves the two would
+        // overwrite each other forever without converging.
+        final remoteOcr = remoteDocumentOcr[document.id] ?? '';
+        if (remoteOcr.isNotEmpty || document.ocrText.isEmpty) continue;
+      }
       await uploadDocument(document);
       uploaded++;
     }
@@ -181,6 +253,7 @@ class CloudSyncService {
   Future<void> uploadDocument(ScanDocument document) async {
     await _requireNetwork();
     final userId = _userId;
+    await _claimLibraryOwnership(userId);
     final root = '$userId/${document.id}';
     final pageRows = <Map<String, Object?>>[];
     final pdfImages = <List<int>>[];
@@ -264,15 +337,76 @@ class CloudSyncService {
       'updated_at': document.modifiedAt.toUtc().toIso8601String(),
       'deleted_at': document.deletedAt?.toUtc().toIso8601String(),
     });
+    // Replace the remote page set wholesale. Upserting over stale rows
+    // violates unique(document_id, page_index) after a local reorder, and
+    // rows for locally deleted pages would resurrect them on the next
+    // restore.
+    await _client
+        .from('document_pages')
+        .delete()
+        .eq('document_id', document.id);
     if (pageRows.isNotEmpty) {
-      await _client.from('document_pages').upsert(pageRows);
+      await _client.from('document_pages').insert(pageRows);
     }
   }
 
+  /// Deletes remote rows and storage objects for everything permanently
+  /// deleted on this device, then drops the tombstones.
+  Future<void> purgeRemoteDeletions() async {
+    final log = deletionLog;
+    if (log == null) return;
+    final docIds = log.documentIds.toList();
+    final folderIds = log.folderIds.toList();
+    if (docIds.isEmpty && folderIds.isEmpty) return;
+    await _requireNetwork();
+    final userId = _userId;
+
+    final purgedDocs = <String>[];
+    for (final id in docIds) {
+      try {
+        for (final bucket in const [
+          'processed-pages',
+          'original-pages',
+          'scanned-documents',
+        ]) {
+          final objects = await _client.storage
+              .from(bucket)
+              .list(path: '$userId/$id');
+          if (objects.isEmpty) continue;
+          await _client.storage.from(bucket).remove([
+            for (final object in objects) '$userId/$id/${object.name}',
+          ]);
+        }
+        // document_pages cascades from documents in the schema.
+        await _client.from('documents').delete().eq('id', id);
+        purgedDocs.add(id);
+      } catch (_) {
+        // Keep the tombstone and retry on the next sync rather than let a
+        // transient failure resurrect the document.
+      }
+    }
+
+    final purgedFolders = <String>[];
+    for (final id in folderIds) {
+      try {
+        await _client.from('folders').delete().eq('id', id);
+        purgedFolders.add(id);
+      } catch (_) {
+        // Retry next sync.
+      }
+    }
+
+    await log.clearDocuments(purgedDocs);
+    await log.clearFolders(purgedFolders);
+  }
+
   Future<int> restoreNewerRemoteItems() async {
+    final deletedDocIds = deletionLog?.documentIds ?? const <String>{};
+    final deletedFolderIds = deletionLog?.folderIds ?? const <String>{};
     final remoteFolders = await _client.from('folders').select();
     for (final row in remoteFolders) {
       final map = row;
+      if (deletedFolderIds.contains(map['id'])) continue;
       final existing = folders
           .getAll()
           .where((item) => item.id == map['id'])
@@ -296,6 +430,8 @@ class CloudSyncService {
     for (final row in remoteDocs) {
       final map = row;
       final id = map['id'] as String;
+      // Never restore what the user permanently deleted here.
+      if (deletedDocIds.contains(id)) continue;
       final modified = DateTime.parse(map['updated_at'] as String).toLocal();
       final existing = documents.getById(id);
       if (existing != null && !existing.modifiedAt.isBefore(modified)) continue;

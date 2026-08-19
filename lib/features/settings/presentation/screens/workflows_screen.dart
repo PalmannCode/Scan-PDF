@@ -273,10 +273,11 @@ class _WorkflowsScreenState extends ConsumerState<WorkflowsScreen> {
                                   ? () => _run(workflow)
                                   : null,
                               icon: _running == workflow.id
-                                  ? const SizedBox.square(
+                                  ? SizedBox.square(
                                       dimension: 16,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
+                                        color: colors.accent,
                                       ),
                                     )
                                   : const Icon(Icons.play_arrow_rounded),

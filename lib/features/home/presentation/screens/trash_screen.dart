@@ -185,6 +185,6 @@ class _TrashRow extends ConsumerWidget {
           ),
         ],
       ),
-    ).staggered(index);
+    ).staggered(index.clamp(0, 8));
   }
 }

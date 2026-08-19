@@ -182,7 +182,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           document: doc,
           onTap: () => context.push('/document/${doc.id}'),
           onLongPress: () => showDocumentActions(context, ref, doc),
-        ).staggered(index);
+        ).staggered(index.clamp(0, 8));
       },
     );
   }

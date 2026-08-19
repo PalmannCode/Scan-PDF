@@ -90,7 +90,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       appBar: AppBar(
         leading: PressableTap(
           style: PressStyle.dim,
-          onTap: () => context.pop(),
+          // The magic-link deep link lands here with an empty stack, so
+          // back must fall through to home instead of throwing on pop.
+          onTap: () => context.canPop() ? context.pop() : context.go('/'),
           child: Icon(
             Icons.arrow_back_ios_new_rounded,
             color: colors.textPrimary,
@@ -211,6 +213,12 @@ class _GuestAccount extends StatelessWidget {
           child: SignInWithAppleButton(
             onPressed: onApple,
             height: 50,
+            // The button defaults to solid black, which vanishes against the
+            // dark-theme card (#211D48) — Apple's guidelines ask for the white
+            // variant on dark surfaces.
+            style: context.isDark
+                ? SignInWithAppleButtonStyle.white
+                : SignInWithAppleButtonStyle.black,
             borderRadius: const BorderRadius.all(Radius.circular(14)),
           ),
         ),

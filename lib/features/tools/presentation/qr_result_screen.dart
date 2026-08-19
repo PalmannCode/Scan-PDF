@@ -31,7 +31,7 @@ class QrResultScreen extends StatelessWidget {
         title: Text('QR Code', style: AppTypography.title(colors.textPrimary)),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

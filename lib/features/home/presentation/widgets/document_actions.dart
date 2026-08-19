@@ -59,10 +59,10 @@ Future<void> showDocumentActions(
           ),
           SheetAction(
             icon: Icons.ios_share_rounded,
-            label: 'Share as PDF',
+            label: 'Share',
             onTap: () async {
               Navigator.of(context).pop();
-              await ref.read(exportServiceProvider).sharePdf(document);
+              await ref.read(exportServiceProvider).shareDefault(document);
             },
           ),
           SheetAction(

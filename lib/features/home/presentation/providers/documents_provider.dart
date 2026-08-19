@@ -13,6 +13,7 @@ part 'documents_provider.g.dart';
 DocumentRepository documentRepository(Ref ref) => DocumentRepositoryImpl(
   box: ref.watch(documentsBoxProvider),
   resolvePath: ref.watch(resolvePathProvider),
+  deletionLog: ref.watch(deletionLogProvider),
 );
 
 /// Whole library (including trash); screens slice it via the computed

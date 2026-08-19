@@ -1,6 +1,7 @@
 import Flutter
 import PDFKit
 import UIKit
+import StoreKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -72,6 +73,28 @@ import UIKit
           result(output)
         } catch {
           result(FlutterError(code: "write_failed", message: error.localizedDescription, details: nil))
+        }
+      }
+    }
+    if let storefrontRegistrar = engineBridge.pluginRegistry.registrar(
+      forPlugin: "HomeScreenApiStorefrontPlugin"
+    ) {
+      let storefrontChannel = FlutterMethodChannel(
+        name: "home_screen_api/storefront", binaryMessenger: storefrontRegistrar.messenger())
+      storefrontChannel.setMethodCallHandler { call, result in
+        guard call.method == "getStorefrontCountry" else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        if #available(iOS 15.0, *) {
+          Task {
+            let countryCode = await Storefront.current?.countryCode
+            await MainActor.run {
+              result(countryCode)
+            }
+          }
+        } else {
+          result(SKPaymentQueue.default().storefront?.countryCode)
         }
       }
     }

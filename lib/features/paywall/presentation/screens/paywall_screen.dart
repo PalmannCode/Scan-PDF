@@ -15,6 +15,7 @@ import 'package:scanpdf/core/widgets/pressable_tap.dart';
 import 'package:scanpdf/features/paywall/presentation/providers/plus_provider.dart';
 import 'package:scanpdf/services/purchase_service.dart';
 import 'package:scanpdf/services/analytics_service.dart';
+import 'package:scanpdf/app/theme/app_motion.dart';
 
 /// Plus paywall (Jira §7): direct App Store subscription, soft gate.
 /// Core local scanning remains usable without it; advanced cloud, AI,
@@ -119,7 +120,7 @@ class _PlusOfferBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final canBuy = plus.storeAvailable && plus.product != null;
+    final canBuy = plus.storeAvailable && plus.selectedProduct != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -163,25 +164,33 @@ class _PlusOfferBody extends ConsumerWidget {
               'Expanded document Q&A, extraction, translation, and recognition limits.',
         ),
         const SizedBox(height: AppSpacing.xl),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: colors.shellElevated,
-            borderRadius: AppShapes.cardRadius,
-          ),
-          child: Column(
-            children: [
-              Text(
-                AppConstants.plusTrialText,
-                style: AppTypography.title(colors.onShell),
+        Text(
+          AppConstants.plusTrialText,
+          textAlign: TextAlign.center,
+          style: AppTypography.title(colors.onShell),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: _PlanOption(
+                productId: AppConstants.plusWeeklyProductId,
+                label: 'Weekly',
+                plus: plus,
+                enabled: plus.storeAvailable,
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'then ${plus.priceLabel} per ${AppConstants.plusBillingPeriod}',
-                style: AppTypography.mono(colors.onShellMuted, size: 13),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _PlanOption(
+                productId: AppConstants.plusMonthlyProductId,
+                label: 'Monthly',
+                badge: 'Best value',
+                plus: plus,
+                enabled: plus.storeAvailable,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: AppSpacing.lg),
         PressableTap(
@@ -192,9 +201,11 @@ class _PlusOfferBody extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
             decoration: BoxDecoration(
+              // accentDeep, not accent: white on #FF7A2E is 2.6:1, the same
+              // failure the Material button theme keys off accentDeep to avoid.
               color: canBuy
-                  ? colors.accent
-                  : colors.accent.withValues(alpha: 0.35),
+                  ? colors.accentDeep
+                  : colors.accent.withValues(alpha: 0.60),
               borderRadius: AppShapes.buttonRadius,
             ),
             child: Text(
@@ -349,6 +360,81 @@ class _LegalLinks extends StatelessWidget {
         ],
       ),
       textAlign: TextAlign.center,
+    );
+  }
+}
+
+/// One selectable subscription plan. Price comes from StoreKit when loaded,
+/// falling back to the published offer copy so the paywall is never blank.
+class _PlanOption extends ConsumerWidget {
+  const _PlanOption({
+    required this.productId,
+    required this.label,
+    required this.plus,
+    required this.enabled,
+    this.badge,
+  });
+
+  final String productId;
+  final String label;
+  final PlusState plus;
+  final bool enabled;
+  final String? badge;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
+    final selected = plus.selectedProductId == productId;
+    return PressableTap(
+      onTap: enabled
+          ? () => ref.read(plusProvider.notifier).selectProduct(productId)
+          : null,
+      enabled: enabled,
+      child: AnimatedContainer(
+        duration: AppMotion.standard,
+        curve: AppMotion.enter,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.lg,
+        ),
+        decoration: BoxDecoration(
+          color: colors.shellElevated,
+          borderRadius: AppShapes.cardRadius,
+          border: Border.all(
+            color: selected ? colors.accent : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(label, style: AppTypography.title(colors.onShell)),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              plus.priceLabelFor(productId),
+              style: AppTypography.mono(colors.onShell, size: 15),
+            ),
+            Text(
+              'per ${AppConstants.periodFor(productId)}',
+              style: AppTypography.mono(colors.onShellMuted, size: 12),
+            ),
+            if (badge != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  // Same reason as the CTA: white caption on accent is 2.6:1.
+                  color: colors.accentDeep,
+                  borderRadius: AppShapes.pillRadius,
+                ),
+                child: Text(badge!, style: AppTypography.caption(Colors.white)),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
